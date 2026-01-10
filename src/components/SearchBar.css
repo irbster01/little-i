@@ -1,0 +1,40 @@
+.search-bar {
+  margin-bottom: 2rem;
+}
+
+.search-bar-header {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.search-form {
+  display: flex;
+  gap: 1rem;
+  flex: 1;
+  min-width: 300px;
+}
+
+.search-input {
+  flex: 1;
+  padding: 0.875rem 1rem;
+  font-size: 1rem;
+  border: 1px solid #d1d1d1;
+  border-radius: 4px;
+}
+
+.search-button {
+  padding: 0.875rem 2rem;
+  white-space: nowrap;
+}
+
+.submit-expert-button {
+  padding: 0.875rem 1.5rem;
+  background-color: #107c10;
+  white-space: nowrap;
+}
+
+.submit-expert-button:hover {
+  background-color: #0e6b0e;
+}
