@@ -164,6 +164,46 @@
   box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
 }
 
+.submit-nominations:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+  transform: none;
+}
+
+.submit-nominations.loading {
+  background: #6b7280;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spinning {
+  animation: spin 1s linear infinite;
+}
+
+/* Success state */
+.nominations-panel.success {
+  background: #dcfce7;
+  border-top-color: #16a34a;
+}
+
+.success-message {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  color: #16a34a;
+  font-weight: 600;
+  font-size: 1rem;
+  padding: 0.5rem 0;
+}
+
 /* Add padding to main content when nominations panel is visible */
 body:has(.nominations-panel) .main-content {
   padding-bottom: 180px;

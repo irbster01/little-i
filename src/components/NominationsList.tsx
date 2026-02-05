@@ -1,5 +1,6 @@
+import { useState } from 'react'
 import type { Expert } from './ExpertDirectory'
-import { X, UserPlus, Send } from 'lucide-react'
+import { X, UserPlus, Send, Loader2, CheckCircle } from 'lucide-react'
 import './NominationsList.css'
 
 interface NominationsListProps {
@@ -9,8 +10,57 @@ interface NominationsListProps {
 }
 
 export default function NominationsList({ nominations, onRemove, onClear }: NominationsListProps) {
-  if (nominations.length === 0) {
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitSuccess, setSubmitSuccess] = useState(false)
+
+  if (nominations.length === 0 && !submitSuccess) {
     return null
+  }
+
+  const handleSubmit = async () => {
+    setIsSubmitting(true)
+    try {
+      const response = await fetch('/api/submitNominations', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          experts: nominations.map((e) => ({
+            id: e.id,
+            name: e.name,
+            title: e.title,
+            department: e.department,
+            email: e.email,
+          })),
+        }),
+      })
+
+      if (response.ok) {
+        setSubmitSuccess(true)
+        setTimeout(() => {
+          onClear()
+          setSubmitSuccess(false)
+        }, 2500)
+      } else {
+        console.error('Failed to submit nominations')
+      }
+    } catch (error) {
+      console.error('Error submitting nominations:', error)
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  if (submitSuccess) {
+    return (
+      <div className="nominations-panel success">
+        <div className="success-message">
+          <CheckCircle size={24} />
+          <span>Nominations submitted successfully!</span>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -45,9 +95,22 @@ export default function NominationsList({ nominations, onRemove, onClear }: Nomi
         ))}
       </div>
       <div className="nominations-actions">
-        <button className="submit-nominations">
-          <Send size={16} />
-          Submit Nominations
+        <button 
+          className={`submit-nominations ${isSubmitting ? 'loading' : ''}`}
+          onClick={handleSubmit}
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? (
+            <>
+              <Loader2 size={16} className="spinning" />
+              Submitting...
+            </>
+          ) : (
+            <>
+              <Send size={16} />
+              Submit Nominations
+            </>
+          )}
         </button>
       </div>
     </div>
