@@ -147,19 +147,58 @@
 .expert-footer {
   border-top: 1px solid #f0f0f0;
   padding-top: 1rem;
+  display: flex;
+  gap: 0.75rem;
 }
 
 .contact-button {
-  display: inline-block;
-  padding: 0.5rem 1.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1.25rem;
   background-color: #0078d4;
   color: white;
   text-decoration: none;
-  border-radius: 4px;
+  border-radius: 6px;
   font-weight: 500;
-  transition: background-color 0.2s;
+  font-size: 0.875rem;
+  transition: all 0.2s;
+  flex: 1;
 }
 
 .contact-button:hover {
   background-color: #106ebe;
+}
+
+.nominate-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  padding: 0.5rem 1.25rem;
+  background-color: white;
+  color: #2563eb;
+  border: 2px solid #2563eb;
+  border-radius: 6px;
+  font-weight: 500;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex: 1;
+}
+
+.nominate-button:hover:not(:disabled) {
+  background-color: #2563eb;
+  color: white;
+}
+
+.nominate-button.nominated {
+  background-color: #dcfce7;
+  color: #16a34a;
+  border-color: #16a34a;
+  cursor: default;
+}
+
+.nominate-button:disabled {
+  opacity: 1;
 }

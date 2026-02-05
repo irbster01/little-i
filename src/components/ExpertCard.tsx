@@ -1,13 +1,15 @@
 import type { Expert } from './ExpertDirectory'
-import { Award, Star } from 'lucide-react'
+import { Award, Star, UserPlus, Check } from 'lucide-react'
 import './ExpertCard.css'
 
 interface ExpertCardProps {
   expert: Expert
   matchType?: 'best' | 'recommended' | null
+  onNominate: () => void
+  isNominated: boolean
 }
 
-export default function ExpertCard({ expert, matchType }: ExpertCardProps) {
+export default function ExpertCard({ expert, matchType, onNominate, isNominated }: ExpertCardProps) {
   return (
     <div className={`expert-card ${matchType ? `match-${matchType}` : ''}`}>
       {matchType && (
@@ -50,6 +52,23 @@ export default function ExpertCard({ expert, matchType }: ExpertCardProps) {
         <a href={`mailto:${expert.email}`} className="contact-button">
           Contact
         </a>
+        <button 
+          onClick={onNominate} 
+          className={`nominate-button ${isNominated ? 'nominated' : ''}`}
+          disabled={isNominated}
+        >
+          {isNominated ? (
+            <>
+              <Check size={16} />
+              Nominated
+            </>
+          ) : (
+            <>
+              <UserPlus size={16} />
+              Nominate
+            </>
+          )}
+        </button>
       </div>
     </div>
   )

@@ -17,6 +17,8 @@ interface ExpertDirectoryProps {
   searchQuery: string
   categoryKeywords: string[]
   onClearSearch: () => void
+  onNominate: (expert: Expert) => void
+  nominatedIds: string[]
 }
 
 export interface ExpertWithMatch extends Expert {
@@ -88,7 +90,7 @@ const mockExperts: Expert[] = [
   },
 ]
 
-export default function ExpertDirectory({ searchQuery, categoryKeywords, onClearSearch }: ExpertDirectoryProps) {
+export default function ExpertDirectory({ searchQuery, categoryKeywords, onClearSearch, onNominate, nominatedIds }: ExpertDirectoryProps) {
   const [experts] = useState<Expert[]>(mockExperts)
   const [filteredExperts, setFilteredExperts] = useState<ExpertWithMatch[]>([])
 
@@ -169,7 +171,13 @@ export default function ExpertDirectory({ searchQuery, categoryKeywords, onClear
       <div className="expert-grid">
         {filteredExperts.length > 0 ? (
           filteredExperts.map((expert) => (
-            <ExpertCard key={expert.id} expert={expert} matchType={expert.matchType} />
+            <ExpertCard 
+              key={expert.id} 
+              expert={expert} 
+              matchType={expert.matchType}
+              onNominate={() => onNominate(expert)}
+              isNominated={nominatedIds.includes(expert.id)}
+            />
           ))
         ) : (
           <div className="no-results">

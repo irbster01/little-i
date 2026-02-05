@@ -1,16 +1,33 @@
 import { useState } from 'react'
 import './App.css'
 import ExpertDirectory from './components/ExpertDirectory'
+import type { Expert } from './components/ExpertDirectory'
 import SearchBar from './components/SearchBar'
 import Header from './components/Header'
 import SubmitExpertModal from './components/SubmitExpertModal'
 import CategoryTiles from './components/CategoryTiles'
+import NominationsList from './components/NominationsList'
 
 function App() {
   const [searchQuery, setSearchQuery] = useState('')
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [categoryKeywords, setCategoryKeywords] = useState<string[]>([])
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
+  const [nominations, setNominations] = useState<Expert[]>([])
+
+  const handleNominate = (expert: Expert) => {
+    if (!nominations.find((n) => n.id === expert.id)) {
+      setNominations([...nominations, expert])
+    }
+  }
+
+  const handleRemoveNomination = (expertId: string) => {
+    setNominations(nominations.filter((n) => n.id !== expertId))
+  }
+
+  const handleClearNominations = () => {
+    setNominations([])
+  }
 
   const handleCategorySelect = (keywords: string[]) => {
     setCategoryKeywords(keywords)
@@ -49,12 +66,19 @@ function App() {
             searchQuery={searchQuery}
             categoryKeywords={categoryKeywords}
             onClearSearch={handleClearSearch}
+            onNominate={handleNominate}
+            nominatedIds={nominations.map((n) => n.id)}
           />
         </div>
       </main>
       <SubmitExpertModal 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)}
+      />
+      <NominationsList
+        nominations={nominations}
+        onRemove={handleRemoveNomination}
+        onClear={handleClearNominations}
       />
     </div>
   )
