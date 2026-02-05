@@ -18,7 +18,10 @@ function App() {
             onSearch={setSearchQuery} 
             onSubmitExpert={() => setIsModalOpen(true)}
           />
-          <ExpertDirectory searchQuery={searchQuery} />
+          <ExpertDirectory 
+            searchQuery={searchQuery} 
+            onClearSearch={() => setSearchQuery('')}
+          />
         </div>
       </main>
       <SubmitExpertModal 

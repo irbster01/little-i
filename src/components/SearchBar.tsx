@@ -9,6 +9,11 @@ interface SearchBarProps {
 export default function SearchBar({ onSearch, onSubmitExpert }: SearchBarProps) {
   const [query, setQuery] = useState('')
 
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setQuery(e.target.value)
+    onSearch(e.target.value)
+  }
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     onSearch(query)
@@ -22,7 +27,7 @@ export default function SearchBar({ onSearch, onSubmitExpert }: SearchBarProps) 
             type="text"
             placeholder="Search by skill, expertise, or name..."
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={handleChange}
             className="search-input"
           />
           <button type="submit" className="search-button">

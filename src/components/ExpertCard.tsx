@@ -19,6 +19,9 @@ export default function ExpertCard({ expert }: ExpertCardProps) {
           <p className="expert-affiliate">{expert.affiliate}</p>
         </div>
       </div>
+      <div className="expert-bio">
+        <p>{expert.bio}</p>
+      </div>
       <div className="expert-skills">
         {expert.skills.map((skill) => (
           <span key={skill} className="skill-tag">
