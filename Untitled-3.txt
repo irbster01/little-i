@@ -1,0 +1,57 @@
+-- Complete ServicePoint Table Creation for Fabric Data Warehouse
+-- This script creates the table and imports all 1,880 ServicePoint records
+-- Execute this in your Fabric Data Warehouse: voa_analytics_dw
+
+-- Step 1: Create the ServicePoint table (Fabric-compatible)
+CREATE TABLE raw.servicepoint_entry (
+    [id] BIGINT NOT NULL,
+    [client_id] VARCHAR(50) NOT NULL,
+    [entry_date] DATE,
+    [entry_exit_id] VARCHAR(50),
+    [exit_date] DATE,
+    [provider] VARCHAR(500),
+    [import_date] DATETIME2(3),
+    [source_file] VARCHAR(255),
+    [record_status] VARCHAR(20)
+);
+
+-- Step 2: Verify table creation
+SELECT 
+    TABLE_SCHEMA,
+    TABLE_NAME,
+    TABLE_TYPE
+FROM INFORMATION_SCHEMA.TABLES 
+WHERE TABLE_SCHEMA = 'raw' 
+AND TABLE_NAME = 'servicepoint_entry';
+
+-- Step 3: Check current row count (should be 0 initially)
+SELECT COUNT(*) as current_rows FROM raw.servicepoint_entry;
+
+-- Step 4: Ready for data import
+-- Next: Execute the servicepoint_warehouse_final.sql file we generated
+-- This contains all 1,880 INSERT statements with proper Fabric syntax
+
+-- Step 5: Verification queries (run after data import)
+/*
+-- Total row count
+SELECT COUNT(*) as total_rows FROM raw.servicepoint_entry;
+
+-- Sample records
+SELECT TOP 10 * FROM raw.servicepoint_entry ORDER BY id;
+
+-- Data by provider
+SELECT 
+    provider,
+    COUNT(*) as record_count
+FROM raw.servicepoint_entry 
+GROUP BY provider 
+ORDER BY record_count DESC;
+
+-- Entry date range
+SELECT 
+    MIN(entry_date) as earliest_entry,
+    MAX(entry_date) as latest_entry,
+    COUNT(*) as total_records
+FROM raw.servicepoint_entry 
+WHERE entry_date IS NOT NULL;
+*/

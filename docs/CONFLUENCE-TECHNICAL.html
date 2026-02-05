@@ -1,0 +1,504 @@
+<html>
+<body>
+<h1>Expertise Marketplace - Technical Documentation</h1>
+
+<p><strong>Document Type:</strong> Technical Architecture &amp; Implementation Guide<br/>
+<strong>Audience:</strong> Developers, DevOps Engineers, Solution Architects<br/>
+<strong>Last Updated:</strong> January 29, 2026<br/>
+<strong>Status:</strong> Active Development</p>
+
+<hr/>
+
+<h2>Overview</h2>
+
+<p>The Expertise Marketplace is a full-stack web application that enables employees to discover colleagues based on their skills and expertise. The system is built on Microsoft Azure's serverless architecture, providing scalability, security, and cost efficiency.</p>
+
+<hr/>
+
+<h2>Architecture Diagram</h2>
+
+<ac:structured-macro ac:name="code">
+<ac:parameter ac:name="language">text</ac:parameter>
+<ac:plain-text-body><![CDATA[
+┌─────────────────────────────────────────────────────────────────────────┐
+│                           Azure Static Web Apps                          │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                          │
+│  ┌──────────────────────┐    ┌──────────────────────┐                   │
+│  │   React Frontend     │    │   Azure Functions    │                   │
+│  │   (Vite + TypeScript)│◄──►│   (Node.js API)      │                   │
+│  └──────────────────────┘    └──────────┬───────────┘                   │
+│                                          │                               │
+└──────────────────────────────────────────┼───────────────────────────────┘
+                                           │
+                    ┌──────────────────────┼──────────────────────┐
+                    │                      │                      │
+                    ▼                      ▼                      ▼
+         ┌──────────────────┐   ┌──────────────────┐   ┌──────────────────┐
+         │  Microsoft       │   │  Azure Cosmos DB │   │  Microsoft       │
+         │  Entra ID        │   │  (NoSQL Data)    │   │  Graph API       │
+         │  (Auth)          │   │                  │   │  (User Profiles) │
+         └──────────────────┘   └──────────────────┘   └──────────────────┘
+]]></ac:plain-text-body>
+</ac:structured-macro>
+
+<hr/>
+
+<h2>Technology Stack</h2>
+
+<table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Technology</th>
+<th>Version</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Frontend</strong></td>
+<td>React</td>
+<td>18.x</td>
+<td>UI Framework</td>
+</tr>
+<tr>
+<td><strong>Build Tool</strong></td>
+<td>Vite</td>
+<td>5.x</td>
+<td>Fast development builds</td>
+</tr>
+<tr>
+<td><strong>Language</strong></td>
+<td>TypeScript</td>
+<td>5.x</td>
+<td>Type-safe JavaScript</td>
+</tr>
+<tr>
+<td><strong>Backend</strong></td>
+<td>Azure Functions</td>
+<td>v4</td>
+<td>Serverless API</td>
+</tr>
+<tr>
+<td><strong>Database</strong></td>
+<td>Azure Cosmos DB</td>
+<td>-</td>
+<td>NoSQL document storage</td>
+</tr>
+<tr>
+<td><strong>Authentication</strong></td>
+<td>Microsoft Entra ID</td>
+<td>-</td>
+<td>Enterprise SSO</td>
+</tr>
+<tr>
+<td><strong>Hosting</strong></td>
+<td>Azure Static Web Apps</td>
+<td>-</td>
+<td>CDN-backed hosting</td>
+</tr>
+</tbody>
+</table>
+
+<hr/>
+
+<h2>Project Structure</h2>
+
+<ac:structured-macro ac:name="code">
+<ac:parameter ac:name="language">text</ac:parameter>
+<ac:plain-text-body><![CDATA[
+little-i/
+├── src/                          # Frontend source code
+│   ├── components/               # React components
+│   │   ├── Header.tsx            # Navigation header
+│   │   ├── SearchBar.tsx         # Search input with filters
+│   │   ├── ExpertDirectory.tsx   # Expert listing container
+│   │   ├── ExpertCard.tsx        # Individual expert display
+│   │   └── SubmitExpertModal.tsx # Add new expert form
+│   ├── App.tsx                   # Root component
+│   ├── App.css                   # Global styles
+│   ├── main.tsx                  # Application entry point
+│   └── index.css                 # Base styles
+│
+├── api/                          # Azure Functions API
+│   ├── src/functions/
+│   │   ├── getExperts.ts         # GET /api/getExperts
+│   │   └── searchExperts.ts      # GET /api/searchExperts
+│   ├── host.json                 # Functions host configuration
+│   ├── package.json              # API dependencies
+│   └── tsconfig.json             # API TypeScript config
+│
+├── public/                       # Static assets
+├── staticwebapp.config.json      # SWA routing & security
+├── vite.config.ts                # Vite bundler config
+├── package.json                  # Frontend dependencies
+└── tsconfig.json                 # Frontend TypeScript config
+]]></ac:plain-text-body>
+</ac:structured-macro>
+
+<hr/>
+
+<h2>API Endpoints</h2>
+
+<h3>GET /api/getExperts</h3>
+
+<p>Retrieves all experts from the database.</p>
+
+<p><strong>Authentication:</strong> Required (Entra ID)<br/>
+<strong>Response:</strong></p>
+
+<ac:structured-macro ac:name="code">
+<ac:parameter ac:name="language">json</ac:parameter>
+<ac:plain-text-body><![CDATA[
+{
+  "experts": [
+    {
+      "id": "string",
+      "name": "string",
+      "title": "string",
+      "department": "string",
+      "affiliate": "string",
+      "skills": ["string"],
+      "email": "string"
+    }
+  ]
+}
+]]></ac:plain-text-body>
+</ac:structured-macro>
+
+<h3>GET /api/searchExperts</h3>
+
+<p>Searches experts by query string.</p>
+
+<p><strong>Authentication:</strong> Required (Entra ID)<br/>
+<strong>Query Parameters:</strong></p>
+<ul>
+<li><code>q</code> (string): Search query matching name, title, department, or skills</li>
+</ul>
+
+<p><strong>Response:</strong> Same structure as <code>/api/getExperts</code></p>
+
+<hr/>
+
+<h2>Data Model</h2>
+
+<h3>Expert Entity</h3>
+
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Description</th>
+<th>Required</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>id</code></td>
+<td>string</td>
+<td>Unique identifier (GUID)</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td><code>name</code></td>
+<td>string</td>
+<td>Full name of expert</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td><code>title</code></td>
+<td>string</td>
+<td>Job title</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td><code>department</code></td>
+<td>string</td>
+<td>Department name</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td><code>affiliate</code></td>
+<td>string</td>
+<td>VOA affiliate organization</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td><code>skills</code></td>
+<td>string[]</td>
+<td>Array of expertise areas</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td><code>email</code></td>
+<td>string</td>
+<td>Work email address</td>
+<td>Yes</td>
+</tr>
+</tbody>
+</table>
+
+<h3>Cosmos DB Configuration</h3>
+
+<ul>
+<li><strong>Partition Key:</strong> <code>/department</code></li>
+<li><strong>Consistency Level:</strong> Session</li>
+<li><strong>Container:</strong> <code>experts</code></li>
+<li><strong>Database:</strong> <code>expertise-marketplace</code></li>
+</ul>
+
+<hr/>
+
+<h2>Authentication &amp; Authorization</h2>
+
+<h3>Microsoft Entra ID Integration</h3>
+
+<p>The application uses Azure Static Web Apps built-in authentication with Microsoft Entra ID (formerly Azure AD).</p>
+
+<p><strong>Configuration (staticwebapp.config.json):</strong></p>
+
+<ac:structured-macro ac:name="code">
+<ac:parameter ac:name="language">json</ac:parameter>
+<ac:plain-text-body><![CDATA[
+{
+  "routes": [
+    {
+      "route": "/api/*",
+      "allowedRoles": ["authenticated"]
+    }
+  ],
+  "responseOverrides": {
+    "401": {
+      "redirect": "/.auth/login/aad",
+      "statusCode": 302
+    }
+  }
+}
+]]></ac:plain-text-body>
+</ac:structured-macro>
+
+<p><strong>Authentication Flow:</strong></p>
+<ol>
+<li>User accesses the application</li>
+<li>API calls require authentication</li>
+<li>Unauthenticated users redirected to Entra ID login</li>
+<li>Post-authentication, user returned to application with session token</li>
+</ol>
+
+<hr/>
+
+<h2>Local Development</h2>
+
+<h3>Prerequisites</h3>
+
+<ul>
+<li>Node.js 18 or later</li>
+<li>npm 9.x or later</li>
+<li>Azure Functions Core Tools v4</li>
+<li>Azure Static Web Apps CLI (optional)</li>
+</ul>
+
+<h3>Setup Commands</h3>
+
+<ac:structured-macro ac:name="code">
+<ac:parameter ac:name="language">bash</ac:parameter>
+<ac:plain-text-body><![CDATA[
+# Clone and install frontend dependencies
+cd little-i
+npm install
+
+# Start frontend dev server
+npm run dev
+# Available at http://localhost:5173
+
+# Install and run API (separate terminal)
+cd api
+npm install
+npm start
+# Available at http://localhost:7071
+]]></ac:plain-text-body>
+</ac:structured-macro>
+
+<h3>Environment Variables</h3>
+
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Description</th>
+<th>Required</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>COSMOS_CONNECTION_STRING</code></td>
+<td>Azure Cosmos DB connection</td>
+<td>Production</td>
+</tr>
+<tr>
+<td><code>COSMOS_DATABASE_NAME</code></td>
+<td>Database name</td>
+<td>Production</td>
+</tr>
+<tr>
+<td><code>COSMOS_CONTAINER_NAME</code></td>
+<td>Container name</td>
+<td>Production</td>
+</tr>
+</tbody>
+</table>
+
+<hr/>
+
+<h2>Deployment</h2>
+
+<h3>Azure Static Web Apps Deployment</h3>
+
+<ol>
+<li><strong>GitHub Integration:</strong> Connect repository to Azure SWA</li>
+<li><strong>Build Configuration:</strong>
+<ul>
+<li>App location: <code>/</code></li>
+<li>API location: <code>/api</code></li>
+<li>Output location: <code>/dist</code></li>
+</ul>
+</li>
+<li><strong>GitHub Actions Workflow</strong> (auto-generated):
+<ul>
+<li>Triggers on push to <code>main</code></li>
+<li>Builds React frontend with Vite</li>
+<li>Packages Azure Functions</li>
+<li>Deploys to Azure edge locations</li>
+</ul>
+</li>
+</ol>
+
+<h3>Production Checklist</h3>
+
+<ac:task-list>
+<ac:task>
+<ac:task-status>incomplete</ac:task-status>
+<ac:task-body>Configure Cosmos DB connection string in SWA Application Settings</ac:task-body>
+</ac:task>
+<ac:task>
+<ac:task-status>incomplete</ac:task-status>
+<ac:task-body>Register application in Microsoft Entra ID</ac:task-body>
+</ac:task>
+<ac:task>
+<ac:task-status>incomplete</ac:task-status>
+<ac:task-body>Configure allowed redirect URIs</ac:task-body>
+</ac:task>
+<ac:task>
+<ac:task-status>incomplete</ac:task-status>
+<ac:task-body>Enable CORS for custom domains</ac:task-body>
+</ac:task>
+<ac:task>
+<ac:task-status>incomplete</ac:task-status>
+<ac:task-body>Set up Application Insights for monitoring</ac:task-body>
+</ac:task>
+</ac:task-list>
+
+<hr/>
+
+<h2>Security Considerations</h2>
+
+<table>
+<thead>
+<tr>
+<th>Control</th>
+<th>Implementation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Authentication</strong></td>
+<td>Microsoft Entra ID (mandatory)</td>
+</tr>
+<tr>
+<td><strong>Authorization</strong></td>
+<td>Role-based via <code>allowedRoles</code> in routes</td>
+</tr>
+<tr>
+<td><strong>Transport</strong></td>
+<td>HTTPS enforced by Azure SWA</td>
+</tr>
+<tr>
+<td><strong>CSP</strong></td>
+<td>Content Security Policy headers configured</td>
+</tr>
+<tr>
+<td><strong>Data</strong></td>
+<td>Cosmos DB encryption at rest</td>
+</tr>
+</tbody>
+</table>
+
+<hr/>
+
+<h2>Monitoring &amp; Logging</h2>
+
+<ul>
+<li><strong>Application Insights:</strong> Integrated telemetry for Functions</li>
+<li><strong>Azure Monitor:</strong> Infrastructure metrics</li>
+<li><strong>Function Logs:</strong> Available in Azure Portal &gt; Function App &gt; Logs</li>
+</ul>
+
+<hr/>
+
+<h2>Future Roadmap</h2>
+
+<table>
+<thead>
+<tr>
+<th>Phase</th>
+<th>Feature</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Phase 1</td>
+<td>Core search functionality</td>
+<td>✅ Complete</td>
+</tr>
+<tr>
+<td>Phase 2</td>
+<td>Cosmos DB integration</td>
+<td>🔄 In Progress</td>
+</tr>
+<tr>
+<td>Phase 3</td>
+<td>Microsoft Graph integration</td>
+<td>📋 Planned</td>
+</tr>
+<tr>
+<td>Phase 4</td>
+<td>Advanced filtering &amp; facets</td>
+<td>📋 Planned</td>
+</tr>
+<tr>
+<td>Phase 5</td>
+<td>Expert messaging system</td>
+<td>📋 Planned</td>
+</tr>
+</tbody>
+</table>
+
+<hr/>
+
+<h2>Support &amp; Contacts</h2>
+
+<ul>
+<li><strong>Repository:</strong> GitHub - little-i</li>
+<li><strong>Technical Lead:</strong> TBD</li>
+<li><strong>Azure Subscription:</strong> TBD</li>
+</ul>
+
+<hr/>
+
+<p><em>This document is maintained by the development team. For questions, please contact the technical lead.</em></p>
+
+</body>
+</html>

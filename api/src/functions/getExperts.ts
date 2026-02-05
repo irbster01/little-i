@@ -1,33 +1,42 @@
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from "@azure/functions";
+import { CosmosClient } from "@azure/cosmos";
+
+const connectionString = process.env.COSMOS_CONNECTION_STRING || "";
+const databaseName = process.env.COSMOS_DATABASE_NAME || "ExpertiseMarketplace";
+const containerName = process.env.COSMOS_CONTAINER_NAME || "Experts";
+
+let cosmosClient: CosmosClient | null = null;
+
+function getCosmosClient(): CosmosClient {
+    if (!cosmosClient && connectionString) {
+        cosmosClient = new CosmosClient(connectionString);
+    }
+    return cosmosClient!;
+}
 
 export async function getExperts(request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {
     context.log(`Http function processed request for url "${request.url}"`);
 
-    // TODO: Replace with Microsoft Lists/Graph API query
-    // For now, return mock data
-    const experts = [
-        {
-            id: '1',
-            name: 'Sarah Johnson',
-            title: 'Community Outreach Coordinator',
-            department: 'Community Programs',
-            skills: ['Crisis Intervention', 'Case Management', 'Trauma-Informed Care', 'Spanish Language'],
-            email: 'sarah.johnson@voa.gov',
-        },
-        {
-            id: '2',
-            name: 'Michael Chen',
-            title: 'Grant Writer',
-            department: 'Development',
-            skills: ['Grant Writing', 'Federal Funding', 'Budget Planning', 'Microsoft Excel'],
-            email: 'michael.chen@voa.gov',
-        },
-    ];
+    try {
+        const client = getCosmosClient();
+        const database = client.database(databaseName);
+        const container = database.container(containerName);
 
-    return {
-        status: 200,
-        jsonBody: { experts }
-    };
+        const { resources: experts } = await container.items
+            .query("SELECT * FROM c")
+            .fetchAll();
+
+        return {
+            status: 200,
+            jsonBody: { experts }
+        };
+    } catch (error) {
+        context.log(`Error fetching experts: ${error}`);
+        return {
+            status: 500,
+            jsonBody: { error: "Failed to fetch experts" }
+        };
+    }
 }
 
 app.http('getExperts', {

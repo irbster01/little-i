@@ -1,0 +1,50 @@
+-- ServicePoint Client Processing with Duplicate Prevention
+-- Handles client demographic updates via UPSERT
+
+CREATE OR ALTER PROCEDURE [staging].[sp_process_servicepoint_clients]
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    -- Log processing start
+    PRINT 'Starting ServicePoint client processing...'
+    
+    -- UPSERT logic for clients (update existing, insert new)
+    MERGE staging.clients AS target
+    USING (
+        SELECT DISTINCT
+            ClientUniqueID as external_client_id,
+            'ServicePoint' as source_system,
+            FirstName as first_name,
+            LastName as last_name,
+            DOB as date_of_birth,
+            Gender as gender,
+            Race as race,
+            Ethnicity as ethnicity,
+            VeteranStatus as veteran_status,
+            GETDATE() as last_updated
+        FROM raw.servicepoint_import
+        WHERE ClientUniqueID IS NOT NULL
+    ) AS source ON (
+        target.external_client_id = source.external_client_id 
+        AND target.source_system = source.source_system
+    )
+    WHEN MATCHED THEN
+        UPDATE SET
+            first_name = source.first_name,
+            last_name = source.last_name,
+            date_of_birth = source.date_of_birth,
+            gender = source.gender,
+            race = source.race,
+            ethnicity = source.ethnicity,
+            veteran_status = source.veteran_status,
+            last_updated = source.last_updated
+    WHEN NOT MATCHED THEN
+        INSERT (external_client_id, source_system, first_name, last_name, 
+                date_of_birth, gender, race, ethnicity, veteran_status, last_updated)
+        VALUES (source.external_client_id, source.source_system, source.first_name, 
+                source.last_name, source.date_of_birth, source.gender, source.race, 
+                source.ethnicity, source.veteran_status, source.last_updated);
+    
+    PRINT CONCAT('Client processing complete. Affected rows: ', @@ROWCOUNT);
+END
