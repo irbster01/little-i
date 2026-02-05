@@ -1,13 +1,30 @@
 import type { Expert } from './ExpertDirectory'
+import { Award, Star } from 'lucide-react'
 import './ExpertCard.css'
 
 interface ExpertCardProps {
   expert: Expert
+  matchType?: 'best' | 'recommended' | null
 }
 
-export default function ExpertCard({ expert }: ExpertCardProps) {
+export default function ExpertCard({ expert, matchType }: ExpertCardProps) {
   return (
-    <div className="expert-card">
+    <div className={`expert-card ${matchType ? `match-${matchType}` : ''}`}>
+      {matchType && (
+        <div className={`match-badge ${matchType}`}>
+          {matchType === 'best' ? (
+            <>
+              <Award size={14} />
+              <span>Best Match</span>
+            </>
+          ) : (
+            <>
+              <Star size={14} />
+              <span>Recommended</span>
+            </>
+          )}
+        </div>
+      )}
       <div className="expert-header">
         <div className="expert-avatar">
           {expert.name.split(' ').map((n) => n[0]).join('')}

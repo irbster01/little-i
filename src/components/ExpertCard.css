@@ -4,6 +4,55 @@
   padding: 1.5rem;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07), 0 1px 3px rgba(0, 0, 0, 0.06);
   transition: transform 0.2s, box-shadow 0.2s;
+  position: relative;
+}
+
+.expert-card.match-best {
+  border: 2px solid #16a34a;
+  background: linear-gradient(to bottom, rgba(22, 163, 74, 0.03), #fafafa);
+}
+
+.expert-card.match-recommended {
+  border: 2px solid #2563eb;
+  background: linear-gradient(to bottom, rgba(37, 99, 235, 0.03), #fafafa);
+}
+
+.match-badge {
+  position: absolute;
+  top: -10px;
+  right: 16px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  animation: badgePop 0.3s ease-out;
+}
+
+.match-badge.best {
+  background: linear-gradient(135deg, #16a34a, #15803d);
+  color: white;
+}
+
+.match-badge.recommended {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: white;
+}
+
+@keyframes badgePop {
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 .expert-card:hover {

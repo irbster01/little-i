@@ -15,7 +15,13 @@ export interface Expert {
 
 interface ExpertDirectoryProps {
   searchQuery: string
+  categoryKeywords: string[]
   onClearSearch: () => void
+}
+
+export interface ExpertWithMatch extends Expert {
+  matchScore: number
+  matchType: 'best' | 'recommended' | null
 }
 
 // Mock data - will be replaced with Cosmos DB queries
@@ -82,40 +88,92 @@ const mockExperts: Expert[] = [
   },
 ]
 
-export default function ExpertDirectory({ searchQuery, onClearSearch }: ExpertDirectoryProps) {
+export default function ExpertDirectory({ searchQuery, categoryKeywords, onClearSearch }: ExpertDirectoryProps) {
   const [experts] = useState<Expert[]>(mockExperts)
-  const [filteredExperts, setFilteredExperts] = useState<Expert[]>(mockExperts)
+  const [filteredExperts, setFilteredExperts] = useState<ExpertWithMatch[]>([])
 
   useEffect(() => {
-    if (!searchQuery.trim()) {
-      setFilteredExperts(experts)
+    // Calculate match score based on category keywords
+    const calculateMatchScore = (expert: Expert, keywords: string[]): number => {
+      if (keywords.length === 0) return 0
+      
+      let score = 0
+      const expertText = [
+        expert.name,
+        expert.title,
+        expert.department,
+        expert.bio,
+        ...expert.skills
+      ].join(' ').toLowerCase()
+      
+      for (const keyword of keywords) {
+        if (expertText.includes(keyword.toLowerCase())) {
+          score += 1
+        }
+      }
+      return score
+    }
+
+    // If category is selected, filter and sort by match score
+    if (categoryKeywords.length > 0) {
+      const scoredExperts: ExpertWithMatch[] = experts
+        .map((expert) => {
+          const score = calculateMatchScore(expert, categoryKeywords)
+          return {
+            ...expert,
+            matchScore: score,
+            matchType: score >= 2 ? 'best' as const : score >= 1 ? 'recommended' as const : null
+          }
+        })
+        .filter((expert) => expert.matchScore > 0)
+        .sort((a, b) => b.matchScore - a.matchScore)
+      
+      setFilteredExperts(scoredExperts)
       return
     }
 
-    const query = searchQuery.toLowerCase()
-    const filtered = experts.filter(
-      (expert) =>
-        expert.name.toLowerCase().includes(query) ||
-        expert.title.toLowerCase().includes(query) ||
-        expert.department.toLowerCase().includes(query) ||
-        expert.skills.some((skill) => skill.toLowerCase().includes(query))
-    )
-    setFilteredExperts(filtered)
-  }, [searchQuery, experts])
+    // If search query, filter by text match
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase()
+      const filtered = experts
+        .filter(
+          (expert) =>
+            expert.name.toLowerCase().includes(query) ||
+            expert.title.toLowerCase().includes(query) ||
+            expert.department.toLowerCase().includes(query) ||
+            expert.skills.some((skill) => skill.toLowerCase().includes(query))
+        )
+        .map((expert) => ({ ...expert, matchScore: 0, matchType: null }))
+      setFilteredExperts(filtered)
+      return
+    }
+
+    // Default: show all experts
+    setFilteredExperts(experts.map((expert) => ({ ...expert, matchScore: 0, matchType: null })))
+  }, [searchQuery, categoryKeywords, experts])
+
+  const isFiltering = searchQuery.trim() || categoryKeywords.length > 0
 
   return (
     <div className="expert-directory">
       <div className="results-header">
-        <h2>Experts ({filteredExperts.length})</h2>
+        <h2>
+          {categoryKeywords.length > 0 ? 'Matching Experts' : 'Experts'} ({filteredExperts.length})
+        </h2>
+        {isFiltering && (
+          <button onClick={onClearSearch} className="clear-filter-link">
+            Clear filters
+          </button>
+        )}
       </div>
       <div className="expert-grid">
         {filteredExperts.length > 0 ? (
           filteredExperts.map((expert) => (
-            <ExpertCard key={expert.id} expert={expert} />
+            <ExpertCard key={expert.id} expert={expert} matchType={expert.matchType} />
           ))
         ) : (
           <div className="no-results">
-            <p>No experts found matching "{searchQuery}"</p>
+            <p>No experts found matching your criteria</p>
             <button onClick={onClearSearch} className="clear-search-button">
               View All Experts
             </button>
