@@ -1,9 +1,11 @@
 import { useState } from 'react'
+import { Loader2, CheckCircle, AlertCircle } from 'lucide-react'
 import './SubmitExpertModal.css'
 
 interface SubmitExpertModalProps {
   isOpen: boolean
   onClose: () => void
+  onSuccess?: () => void
 }
 
 const VOA_AFFILIATES = [
@@ -59,7 +61,7 @@ const EXPERTISE_AREAS = [
   'Legal Services',
 ]
 
-export default function SubmitExpertModal({ isOpen, onClose }: SubmitExpertModalProps) {
+export default function SubmitExpertModal({ isOpen, onClose, onSuccess }: SubmitExpertModalProps) {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -69,19 +71,13 @@ export default function SubmitExpertModal({ isOpen, onClose }: SubmitExpertModal
     skills: [] as string[],
     reason: '',
   })
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle')
+  const [errorMessage, setErrorMessage] = useState('')
 
   if (!isOpen) return null
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (formData.skills.length === 0) {
-      alert('Please select at least one area of expertise.')
-      return
-    }
-    // TODO: Submit to Microsoft List or API
-    console.log('Submitting expert nomination:', formData)
-    alert('Thank you! Expert nomination submitted successfully.')
-    onClose()
+  const resetForm = () => {
     setFormData({
       name: '',
       email: '',
@@ -91,6 +87,59 @@ export default function SubmitExpertModal({ isOpen, onClose }: SubmitExpertModal
       skills: [],
       reason: '',
     })
+    setSubmitStatus('idle')
+    setErrorMessage('')
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (formData.skills.length === 0) {
+      setErrorMessage('Please select at least one area of expertise.')
+      setSubmitStatus('error')
+      return
+    }
+
+    setIsSubmitting(true)
+    setSubmitStatus('idle')
+    setErrorMessage('')
+
+    try {
+      const response = await fetch('/api/addExpert', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          title: formData.title,
+          department: formData.department,
+          affiliate: formData.affiliate,
+          skills: formData.skills,
+          bio: formData.reason || undefined,
+        }),
+      })
+
+      const result = await response.json()
+
+      if (response.ok) {
+        setSubmitStatus('success')
+        setTimeout(() => {
+          onClose()
+          resetForm()
+          if (onSuccess) onSuccess()
+        }, 2000)
+      } else {
+        setErrorMessage(result.error || 'Failed to add expert')
+        setSubmitStatus('error')
+      }
+    } catch (error) {
+      console.error('Error submitting expert:', error)
+      setErrorMessage('Network error. Please try again.')
+      setSubmitStatus('error')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -118,6 +167,20 @@ export default function SubmitExpertModal({ isOpen, onClose }: SubmitExpertModal
             &times;
           </button>
         </div>
+
+        {submitStatus === 'success' && (
+          <div className="status-message success">
+            <CheckCircle size={20} />
+            <span>Expert added successfully! They will now appear in the directory.</span>
+          </div>
+        )}
+
+        {submitStatus === 'error' && (
+          <div className="status-message error">
+            <AlertCircle size={20} />
+            <span>{errorMessage}</span>
+          </div>
+        )}
         
         <form onSubmit={handleSubmit} className="expert-form">
           <div className="form-group">
@@ -240,11 +303,18 @@ export default function SubmitExpertModal({ isOpen, onClose }: SubmitExpertModal
           </div>
 
           <div className="form-actions">
-            <button type="button" className="button-secondary" onClick={onClose}>
+            <button type="button" className="button-secondary" onClick={onClose} disabled={isSubmitting}>
               Cancel
             </button>
-            <button type="submit" className="button-primary">
-              Submit Nomination
+            <button type="submit" className="button-primary" disabled={isSubmitting}>
+              {isSubmitting ? (
+                <>
+                  <Loader2 size={16} className="spinning" />
+                  Adding Expert...
+                </>
+              ) : (
+                'Submit Nomination'
+              )}
             </button>
           </div>
         </form>

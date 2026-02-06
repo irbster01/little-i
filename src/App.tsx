@@ -14,6 +14,11 @@ function App() {
   const [categoryKeywords, setCategoryKeywords] = useState<string[]>([])
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
   const [nominations, setNominations] = useState<Expert[]>([])
+  const [refreshKey, setRefreshKey] = useState(0)
+
+  const handleExpertAdded = () => {
+    setRefreshKey((prev) => prev + 1)
+  }
 
   const handleNominate = (expert: Expert) => {
     if (!nominations.find((n) => n.id === expert.id)) {
@@ -68,12 +73,14 @@ function App() {
             onClearSearch={handleClearSearch}
             onNominate={handleNominate}
             nominatedIds={nominations.map((n) => n.id)}
+            refreshKey={refreshKey}
           />
         </div>
       </main>
       <SubmitExpertModal 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)}
+        onSuccess={handleExpertAdded}
       />
       <NominationsList
         nominations={nominations}
