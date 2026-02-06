@@ -21,6 +21,7 @@ const mockExperts = [
     skills: ["Crisis Intervention", "Case Management", "Trauma-Informed Care", "Spanish Language"],
     email: "sarah.johnson@voa.org",
     bio: "Leads community crisis response initiatives and coordinates trauma-informed care programs. Specializes in bilingual outreach to underserved Spanish-speaking communities.",
+    flair: ["responsive", "frequently-requested"],
   },
   {
     id: "2",
@@ -31,6 +32,7 @@ const mockExperts = [
     skills: ["Grant Writing", "Federal Funding", "Budget Planning", "Microsoft Excel"],
     email: "michael.chen@voa.org",
     bio: "Secures federal and foundation funding for social service programs. Has successfully obtained over $5M in grants for housing and workforce development initiatives.",
+    flair: ["top-contributor", "mentor"],
   },
   {
     id: "3",
@@ -41,6 +43,7 @@ const mockExperts = [
     skills: ["Affordable Housing", "HUD Regulations", "Client Advocacy", "Conflict Resolution"],
     email: "emily.rodriguez@voa.org",
     bio: "Manages affordable housing programs and ensures HUD compliance across multiple properties. Expert in navigating complex housing regulations to help clients find stable housing.",
+    flair: ["thought-leader"],
   },
   {
     id: "4",
@@ -51,6 +54,7 @@ const mockExperts = [
     skills: ["Volunteer Management", "Training Development", "Event Planning", "Social Media"],
     email: "david.kim@voa.org",
     bio: "Recruits, trains, and manages a network of 500+ volunteers across Texas. Creates engaging training programs and coordinates large-scale community service events.",
+    flair: ["rising-star", "responsive"],
   },
   {
     id: "5",
@@ -61,6 +65,7 @@ const mockExperts = [
     skills: ["Mental Health Counseling", "Substance Abuse", "Family Therapy", "Crisis Assessment"],
     email: "patricia.williams@voa.org",
     bio: "Provides clinical mental health services specializing in substance abuse recovery and family therapy. Conducts crisis assessments and develops treatment plans for at-risk populations.",
+    flair: ["mentor", "frequently-requested"],
   },
   {
     id: "6",
@@ -71,6 +76,7 @@ const mockExperts = [
     skills: ["Youth Development", "Mentoring Programs", "Educational Support", "Gang Prevention"],
     email: "james.martinez@voa.org",
     bio: "Directs youth development programs focused on education and gang prevention. Builds mentoring relationships that help at-risk teens stay in school and pursue positive futures.",
+    flair: ["top-contributor"],
   },
 ];
 

@@ -202,3 +202,153 @@
 .nominate-button:disabled {
   opacity: 1;
 }
+
+/* Flair Badges */
+.expert-flair {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.flair-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0.25rem 0.625rem;
+  background: rgba(var(--flair-color-rgb, 0, 120, 212), 0.1);
+  color: var(--flair-color);
+  border: 1px solid rgba(var(--flair-color-rgb, 0, 120, 212), 0.3);
+  border-radius: 16px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.flair-badge svg {
+  flex-shrink: 0;
+}
+
+.flair-responsive {
+  --flair-color: #16a34a;
+  --flair-color-rgb: 22, 163, 74;
+}
+
+.flair-frequently-requested {
+  --flair-color: #ea580c;
+  --flair-color-rgb: 234, 88, 12;
+}
+
+.flair-rising-star {
+  --flair-color: #8b5cf6;
+  --flair-color-rgb: 139, 92, 246;
+}
+
+.flair-top-contributor {
+  --flair-color: #0891b2;
+  --flair-color-rgb: 8, 145, 178;
+}
+
+.flair-mentor {
+  --flair-color: #db2777;
+  --flair-color-rgb: 219, 39, 119;
+}
+
+.flair-thought-leader {
+  --flair-color: #2563eb;
+  --flair-color-rgb: 37, 99, 235;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .expert-card {
+    padding: 1.25rem;
+  }
+
+  .match-badge {
+    top: -8px;
+    right: 12px;
+    padding: 3px 8px;
+    font-size: 0.7rem;
+  }
+
+  .expert-header {
+    gap: 0.75rem;
+  }
+
+  .expert-avatar {
+    width: 50px;
+    height: 50px;
+    font-size: 1rem;
+  }
+
+  .expert-name {
+    font-size: 1rem;
+  }
+
+  .expert-title,
+  .expert-department {
+    font-size: 0.813rem;
+  }
+
+  .expert-affiliate {
+    font-size: 0.75rem;
+  }
+
+  .expert-bio {
+    margin: 0.75rem 0;
+    padding: 0.625rem;
+  }
+
+  .expert-bio p {
+    font-size: 0.813rem;
+  }
+
+  .expert-skills {
+    min-height: 0;
+    gap: 0.375rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .skill-tag {
+    padding: 0.2rem 0.5rem;
+    font-size: 0.75rem;
+  }
+
+  .expert-flair {
+    gap: 0.375rem;
+  }
+
+  .flair-badge {
+    padding: 0.2rem 0.5rem;
+    font-size: 0.625rem;
+  }
+
+  .expert-footer {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .contact-button,
+  .nominate-button {
+    padding: 0.625rem 1rem;
+    font-size: 0.813rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .expert-card {
+    padding: 1rem;
+  }
+
+  .expert-avatar {
+    width: 44px;
+    height: 44px;
+    font-size: 0.875rem;
+  }
+
+  .expert-name {
+    font-size: 0.9375rem;
+  }
+}

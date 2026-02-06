@@ -88,3 +88,48 @@
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 }
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .expert-directory {
+    margin-top: 1.5rem;
+  }
+
+  .results-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .results-header h2 {
+    font-size: 1.25rem;
+  }
+
+  .expert-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .no-results {
+    padding: 2rem 1rem;
+  }
+
+  .no-results p {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .expert-directory {
+    margin-top: 1rem;
+  }
+
+  .results-header h2 {
+    font-size: 1.125rem;
+  }
+
+  .loading-state {
+    padding: 2rem 1rem;
+  }
+}

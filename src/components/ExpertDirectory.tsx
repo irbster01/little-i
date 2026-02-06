@@ -12,6 +12,7 @@ export interface Expert {
   skills: string[]
   email: string
   bio: string
+  flair?: string[]
 }
 
 interface ExpertDirectoryProps {
