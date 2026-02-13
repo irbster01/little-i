@@ -20,7 +20,14 @@
   width: 100%;
   max-height: 90vh;
   overflow-y: auto;
+  overflow-x: hidden;
   animation: modalSlideIn 0.2s ease-out;
+}
+
+.modal-content *,
+.modal-content *::before,
+.modal-content *::after {
+  box-sizing: border-box;
 }
 
 @keyframes modalSlideIn {
@@ -37,15 +44,17 @@
 .modal-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   padding: 1.5rem 2rem;
   border-bottom: 1px solid #e0e0e0;
+  border-radius: 1.5rem 1.5rem 0 0;
 }
 
 .modal-header h2 {
   margin: 0;
   font-size: 1.5rem;
   color: #213547;
+  line-height: 1.3;
 }
 
 .modal-subtitle {
@@ -53,6 +62,7 @@
   font-size: 0.875rem;
   color: #6b7280;
   font-weight: 400;
+  line-height: 1.4;
 }
 
 .modal-header-contribute {
@@ -84,6 +94,7 @@
   letter-spacing: 0.1em;
   color: #9ca3af;
   margin-bottom: 1rem;
+  margin-top: 0.5rem;
   padding-bottom: 0.5rem;
   border-bottom: 1px solid #f3f4f6;
 }
@@ -180,11 +191,15 @@
   padding: 0;
   width: 32px;
   height: 32px;
+  min-width: 32px;
+  min-height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 4px;
   transition: background-color 0.2s, color 0.2s;
+  flex-shrink: 0;
+  margin-top: 2px;
 }
 
 .close-button:hover {
@@ -204,6 +219,7 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1rem;
+  align-items: start;
 }
 
 .form-group label {
@@ -219,10 +235,20 @@
   width: 100%;
   padding: 0.75rem;
   border: 1px solid #d1d1d1;
-  border-radius: 4px;
+  border-radius: 0.5rem;
   font-size: 1rem;
   font-family: inherit;
   transition: border-color 0.2s;
+  box-sizing: border-box;
+}
+
+.form-group select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  padding-right: 2.25rem;
 }
 
 .form-group input:focus,
@@ -231,6 +257,11 @@
   outline: none;
   border-color: #dc2626;
   box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+}
+
+.form-group input::placeholder,
+.form-group textarea::placeholder {
+  color: #9ca3af;
 }
 
 .form-group small {
@@ -247,13 +278,13 @@
 
 .skills-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
   gap: 0.5rem;
   max-height: 300px;
   overflow-y: auto;
   padding: 0.75rem;
   border: 1px solid #e0e0e0;
-  border-radius: 4px;
+  border-radius: 0.75rem;
   background-color: #fafafa;
 }
 
@@ -280,6 +311,9 @@
   font-size: 0.875rem;
   transition: all 0.2s;
   flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .skill-checkbox input[type="checkbox"]:checked + .skill-badge {
@@ -348,6 +382,7 @@
 .form-actions {
   display: flex;
   justify-content: flex-end;
+  align-items: center;
   gap: 1rem;
   margin-top: 2rem;
   padding-top: 1.5rem;
@@ -357,12 +392,13 @@
 .button-primary,
 .button-secondary {
   padding: 0.75rem 1.5rem;
-  border-radius: 4px;
+  border-radius: 0.5rem;
   font-size: 1rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
   border: none;
+  white-space: nowrap;
 }
 
 .button-primary {
@@ -385,17 +421,91 @@
   border-color: #999;
 }
 
-@media (max-width: 600px) {
+@media (max-width: 768px) {
+  .modal-overlay {
+    padding: 0.5rem;
+    align-items: flex-start;
+    padding-top: 2rem;
+  }
+
+  .modal-content {
+    max-height: 92vh;
+    border-radius: 1rem;
+  }
+
+  .modal-header {
+    padding: 1.25rem 1.5rem;
+    border-radius: 1rem 1rem 0 0;
+  }
+
+  .modal-header h2 {
+    font-size: 1.25rem;
+  }
+
   .form-row {
     grid-template-columns: 1fr;
+    gap: 0;
   }
-  
-  .modal-content {
-    max-height: 95vh;
-  }
-  
+
   .expert-form {
-    padding: 1.5rem;
+    padding: 1.25rem 1.5rem;
+  }
+
+  .form-actions {
+    flex-direction: column-reverse;
+  }
+
+  .form-actions .button-primary,
+  .form-actions .button-secondary {
+    width: 100%;
+    text-align: center;
+    justify-content: center;
+  }
+
+  .skills-grid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  }
+
+  .skills-grid.compact {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  }
+
+  .availability-option {
+    padding: 0.625rem 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .modal-overlay {
+    padding: 0;
+    padding-top: 1rem;
+  }
+
+  .modal-content {
+    max-height: 96vh;
+    border-radius: 1rem 1rem 0 0;
+  }
+
+  .modal-header {
+    padding: 1rem 1.25rem;
+    border-radius: 1rem 1rem 0 0;
+  }
+
+  .expert-form {
+    padding: 1rem 1.25rem;
+  }
+
+  .skills-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .skills-grid.compact {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .status-message {
+    padding: 0.75rem 1.25rem;
+    font-size: 0.875rem;
   }
 }
 
@@ -406,6 +516,12 @@
   gap: 0.75rem;
   padding: 1rem 2rem;
   font-weight: 500;
+  font-size: 0.9375rem;
+  line-height: 1.4;
+}
+
+.status-message svg {
+  flex-shrink: 0;
 }
 
 .status-message.success {

@@ -161,8 +161,11 @@ export default function SubmitExpertModal({ isOpen, onClose, onSuccess }: Submit
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
-          <h2>Nominate an Expert</h2>
+        <div className="modal-header modal-header-nominate">
+          <div>
+            <h2>Nominate an Expert</h2>
+            <p className="modal-subtitle">Recommend a colleague for the directory</p>
+          </div>
           <button className="close-button" onClick={onClose} aria-label="Close">
             &times;
           </button>
@@ -183,30 +186,32 @@ export default function SubmitExpertModal({ isOpen, onClose, onSuccess }: Submit
         )}
         
         <form onSubmit={handleSubmit} className="expert-form">
-          <div className="form-group">
-            <label htmlFor="name">Name *</label>
-            <input
-              type="text"
-              id="name"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              required
-              placeholder="Enter expert's full name"
-            />
-          </div>
+          <div className="form-row">
+            <div className="form-group">
+              <label htmlFor="name">Name *</label>
+              <input
+                type="text"
+                id="name"
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+                required
+                placeholder="Enter expert's full name"
+              />
+            </div>
 
-          <div className="form-group">
-            <label htmlFor="email">Email *</label>
-            <input
-              type="email"
-              id="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              required
-              placeholder="expert@voa.org"
-            />
+            <div className="form-group">
+              <label htmlFor="email">Email *</label>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                required
+                placeholder="expert@voa.org"
+              />
+            </div>
           </div>
 
           <div className="form-row">
