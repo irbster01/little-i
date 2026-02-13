@@ -7,8 +7,12 @@ import Header from './components/Header'
 import SubmitExpertModal from './components/SubmitExpertModal'
 import CategoryTiles from './components/CategoryTiles'
 import NominationsList from './components/NominationsList'
+import WelcomeView from './components/WelcomeView'
+
+type ViewMode = 'welcome' | 'browse'
 
 function App() {
+  const [currentView, setCurrentView] = useState<ViewMode>('welcome')
   const [searchQuery, setSearchQuery] = useState('')
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [categoryKeywords, setCategoryKeywords] = useState<string[]>([])
@@ -54,9 +58,40 @@ function App() {
     }
   }
 
+  // Welcome view handlers
+  const handleSeekWisdom = () => {
+    setCurrentView('browse')
+  }
+
+  const handleContribute = () => {
+    setCurrentView('browse')
+    setIsModalOpen(true)
+  }
+
+  const handleShareConsultant = () => {
+    setCurrentView('browse')
+    setIsModalOpen(true)
+  }
+
+  const handleHomeClick = () => {
+    setCurrentView('welcome')
+  }
+
+  // Render welcome view
+  if (currentView === 'welcome') {
+    return (
+      <WelcomeView
+        onSeekWisdom={handleSeekWisdom}
+        onContribute={handleContribute}
+        onShareConsultant={handleShareConsultant}
+      />
+    )
+  }
+
+  // Render browse view
   return (
     <div className="app">
-      <Header />
+      <Header onHomeClick={handleHomeClick} />
       <main className="main-content">
         <div className="container">
           <CategoryTiles 

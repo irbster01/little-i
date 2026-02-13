@@ -89,7 +89,7 @@ export default function CategoryTiles({ onCategorySelect, selectedCategory }: Ca
 
   return (
     <div className="category-section">
-      <h2 className="category-heading">I need help with...</h2>
+      <h2 className="category-heading">Browse by Domains</h2>
       <div className="category-grid">
         {CATEGORIES.map((category) => (
           <button

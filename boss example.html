@@ -1,0 +1,1089 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VOA Expertise Village</title>
+    <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+    <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .animate-fade-in { animation: fadeIn 0.2s ease-out forwards; }
+        .animate-slide-up { animation: slideUp 0.3s ease-out forwards; }
+        .modal-root { position: relative; z-index: 99999; }
+        .village-shadow { box-shadow: 0 10px 40px -10px rgba(120, 50, 50, 0.15); }
+        .map-path { transition: all 0.3s ease; cursor: pointer; }
+        .map-path:hover { filter: brightness(1.1); transform: scale(1.01); z-index: 10; stroke-width: 3px; }
+    </style>
+</head>
+<body class="bg-[#fcfaf8] text-gray-900 font-sans">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useMemo } = React;
+
+        // --- CONSTANTS ---
+        const MASTER_PIN = '1896130'; 
+        
+        // EMBEDDED LOGO (SVG Data URI) - No external file needed!
+        const LOGO_URL = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='48' fill='%23b91c1c' stroke='white' stroke-width='2'/%3E%3Cpath d='M15,60 L50,25 L85,60' fill='none' stroke='white' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/%3E%3Crect x='30' y='60' width='40' height='25' fill='white'/%3E%3Cpath d='M50,25 L50,15' stroke='white' stroke-width='3'/%3E%3C/svg%3E";
+
+        const SUPPORT_TYPES = {
+            brief: "Brief Support (Q&A)",
+            detailed: "Projects",
+            both: "Both Brief Support and Projects"
+        };
+
+        const US_STATES = [
+            "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA", 
+            "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD", 
+            "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ", 
+            "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC", 
+            "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY", "DC"
+        ];
+
+        // Simplified Paths for a US Map visualization
+        const STATE_PATHS = {
+            'AL': "M566.7,219l-3.3,18.7l-3.9,4.4l-1.7,30.3l17.2,1.7l17.7-16.1l2.2-22.1l-15.5-17.7L566.7,219z",
+            'AK': "M137.9,325.3l-1.7-10.5l-9.4-3.3l-16.1,23.8l5,8.8l16.1,7.2l12.2-7.7L137.9,325.3z M68.2,367.4l-3.3-3.3 l-7.2,5l1.1,10.5l11.1,5L68.2,367.4z",
+            'AZ': "M175.6,206.3l-2.2,60.8l59.2,2.8l3.3-59.7l-58.1-12.7L175.6,206.3z",
+            'AR': "M500.9,216.8l-5-29.3l-45.9,2.8l-3.3,24.3l3.3,27.1l32.6-6.1l7.2-12.7L500.9,216.8z",
+            'CA': "M57.8,111.8l-38.2,50.9l32.6,89l60.3,31.5l14.4-60.8l-19.9-38.7L57.8,111.8z",
+            'CO': "M246.4,153.2l-68,6.6l3.3,47l73.5-3.3L246.4,153.2z",
+            'CT': "M745.3,124.6l-8.8,0.6l-0.6,13.8l11.6,1.7L745.3,124.6z",
+            'DE': "M719.9,173.8l-3.9-1.1l2.2,11.6l6.1-2.8L719.9,173.8z",
+            'FL': "M623.1,281.5l-6.1-34.8l-68-9.4l-3.3,14.9l27.1,5l23.2,34.8l23.2-5.5L623.1,281.5z",
+            'GA': "M624.7,236.7l-40.9-2.2l-3.9,34.8l39.3,12.7l17.7-18.8l-7.2-22.1L624.7,236.7z",
+            'HI': "M259.6,359.1l-10.5-2.2l-3.9,7.2l9.4,3.3L259.6,359.1z M287.3,366.3l-9.4,1.7l1.7,5.5l7.2-1.7L287.3,366.3z",
+            'ID': "M163.4,46.6l-29.3,6.1l-6.6,48.1l9.4,3.9l32.1-7.7l5-43.1L163.4,46.6z",
+            'IL': "M533.5,133.3l-34.8,2.2l-11.6,37l18.8,32.6l17.7-11.1L533.5,133.3z",
+            'IN': "M563.4,136.1l-24.9-1.7l-2.8,55.3l16.1,6.1l11.6-18.8L563.4,136.1z",
+            'IA': "M462.2,119.5l-57.5-3.3l-2.2,34.3l57.5-1.7l3.9-22.7L462.2,119.5z",
+            'KS': "M398.6,183.1l-69.7-3.3l-1.7,35.9l74.1,2.8L398.6,183.1z",
+            'KY': "M575,190.8l-79.6,3.3l-8.3,20.5l87.9-7.2L575,190.8z",
+            'LA': "M493.7,294.2l-13.3-43.1l-34.3,2.8l3.9,45.3l22.7,6.1l2.8-13.3L493.7,294.2z",
+            'ME': "M765.2,46.1l-18.8,2.8l-6.1,23.2l12.7,21l19.9-13.8L765.2,46.1z",
+            'MD': "M687.8,158.3l-27.1,3.3l3.3,7.2l8.8-3.3l5,11.1l23.2-6.1L687.8,158.3z",
+            'MA': "M760.8,103.6l-34.3-1.1l-1.1,16.6l31.5,1.1l3.9-8.3L760.8,103.6z",
+            'MI': "M551.2,74.3l-27.6,22.1l12.2,27.6l23.2-12.7l-1.7-33.2L551.2,74.3z",
+            'MN': "M451.7,42.2l-47,3.3l-3.3,67.5l52-3.9l5.5-23.2L451.7,42.2z",
+            'MS': "M529.6,220.1l-28.7,1.7l-5,54.7l17.7,2.8l9.4-13.3L529.6,220.1z",
+            'MO': "M489.8,162.7l-3.3-38.2l-55.8,5l3.9,35.4l28.2,38.2l28.2-13.8L489.8,162.7z",
+            'MT': "M282.9,23.4l-117.8,8.3l12.7,55.3l105.1-6.1L282.9,23.4z",
+            'NE': "M399.7,116.7l-59.7,2.2l-1.7,22.1l-34.8-1.1l-1.1,38.7l97.9,3.9L399.7,116.7z",
+            'NV': "M118.6,117.8l60.8,10.5l-8.8,83.5l-44.2-22.1L118.6,117.8z",
+            'NH': "M738.1,73.8l-7.7,0.6l-2.8,29.3l11.1-1.1L738.1,73.8z",
+            'NJ': "M727.6,145.6l-9.4-5.5l-3.3,27.6l7.7,3.3L727.6,145.6z",
+            'NM': "M239.2,208l-59.7-2.8l2.8,66.4l60.3-2.8L239.2,208z",
+            'NY': "M685.1,89.3l-45.9,3.3l-1.7,44.2l53.1-6.1L685.1,89.3z",
+            'NC': "M681.2,202.9l-67.5,6.1l9.4,19.9l58.1-14.9l8.8-9.4L681.2,202.9z",
+            'ND': "M398.1,38.9l-67.5,3.3l1.1,38.2l69.7-2.8L398.1,38.9z",
+            'OH': "M608.1,135.5l-39.8,3.9l6.1,43.7l28.7-14.4l9.4-23.8L608.1,135.5z",
+            'OK': "M395.8,221.8l-63-2.2l-2.8,29.8l23.2,12.7l46.4-1.7L395.8,221.8z",
+            'OR': "M118.6,44.9L57.8,59.3l-13.8,50.3l74.1-11.6L118.6,44.9z",
+            'PA': "M685.6,128.9l-66.9,2.8l2.2,40.4l65.8-9.9L685.6,128.9z",
+            'RI': "M756.9,121.3l-6.1,0.6l0.6,9.9l6.1-1.1L756.9,121.3z",
+            'SC': "M651.8,226.2l-29.3,3.9l12.7,28.7l26-17.7L651.8,226.2z",
+            'SD': "M401.4,78.2l-69.7,3.9l-1.1,40.4l70.2-2.8L401.4,78.2z",
+            'TN': "M575,190.8l-87.9,7.2l4.4,26.5l88.5-8.3L575,190.8z",
+            'TX': "M353.8,220.1l-1.1,32.6l-50.9,40.4l43.1,38.7l30.4-38.2l24.9,2.2l-3.9-74.1L353.8,220.1z",
+            'UT': "M182.2,143.2l47-3.9l4.4,66.4l-52-2.2L182.2,143.2z",
+            'VT': "M727.1,74.9l-7.7-1.1l2.2,31.5l7.2-0.6L727.1,74.9z",
+            'VA': "M693.3,169.3l-59.2,7.2l12.7,21.5l50.3-13.8L693.3,169.3z",
+            'WA': "M130.2,13.4l-54.7,11.1l11.1,31l70.2-7.2L130.2,13.4z",
+            'WV': "M633,161.6l-28.7,9.9l-2.2,14.4l24.3-12.2L633,161.6z",
+            'WI': "M505.3,73.8l-28.7,2.2l-9.9,42.6l23.2,1.7l11.6-21.6L505.3,73.8z",
+            'WY': "M285.1,86.5l-68,6.1l4.4,56.4l65.8-7.7L285.1,86.5z"
+        };
+
+        // --- HELPER: PORTAL COMPONENT ---
+        const ModalPortal = ({ children }) => ReactDOM.createPortal(<div className="modal-root">{children}</div>, document.body);
+
+        // --- HELPER: GET INITIALS ---
+        const getInitials = (name) => {
+            if (!name) return '?';
+            const parts = name.trim().split(' ');
+            if (parts.length > 1) {
+                return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+            }
+            return parts[0][0].toUpperCase();
+        };
+
+        // --- ICONS ---
+        const Search = () => (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg>);
+        const Plus = () => (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>);
+        const X = () => (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>);
+        const User = () => (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>);
+        const Clock = () => (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>);
+        const Star = () => (<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>);
+        const Trash2 = () => (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>);
+        const Edit = () => (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>);
+        const Home = () => (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>);
+        const UserSearch = () => (<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="10" cy="8" r="5"></circle><path d="M2 21c0-3.5 3-6 8-6"></path><circle cx="18" cy="18" r="3"></circle><path d="m22 22-1.5-1.5"></path></svg>);
+        const UserPlus = () => (<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><line x1="19" x2="19" y1="8" y2="14"></line><line x1="22" x2="16" y1="11" y2="11"></line></svg>);
+        const Briefcase = () => (<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>);
+        const ThumbsUp = () => (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg>);
+        const Mail = () => (<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>);
+        const BadgeCheck = () => (<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>);
+        const Lock = () => (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>);
+        const CalendarCheck = () => (<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line><path d="M9 16l2 2 4-4"></path></svg>);
+        const Download = () => (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>);
+        const Activity = () => (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>);
+        const MapIcon = () => (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon><line x1="8" y1="2" x2="8" y2="18"></line><line x1="16" y1="6" x2="16" y2="22"></line></svg>);
+        const GridIcon = () => (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>);
+        const ShoppingBag = () => (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>);
+        const Bookmark = () => (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>);
+        const BookmarkFilled = () => (<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>);
+
+        // --- DATA ---
+        const DOMAINS = ['Addiction Treatment', 'Behavioral Health', 'Finance', 'Homeless Services', 'Housing Development', 'Housing Management', 'Human Resources', 'Strategic Planning', 'Thrift', 'Veterans'];
+        const AFFILIATES = ['Volunteers of America National Office', 'Volunteers of America Alaska', 'Volunteers of America Chesapeake and Carolinas', 'Volunteers of America Colorado', 'Volunteers of America Delaware Valley', 'Volunteers of America Florida', 'Volunteers of America Greater New York', 'Volunteers of America Illinois', 'Volunteers of America Los Angeles', 'Volunteers of America Massachusetts', 'Volunteers of America Michigan', 'Volunteers of America Mid-States', 'Volunteers of America Minnesota and Wisconsin', 'Volunteers of America National Services', 'Volunteers of America North Louisiana', 'Volunteers of America Northern California and Northern Nevada', 'Volunteers of America Northern Rockies', 'Volunteers of America Ohio and Indiana', 'Volunteers of America Oregon', 'Volunteers of America Southeast Louisiana', 'Volunteers of America Southeast', 'Volunteers of America Southwest', 'Volunteers of America Texas', 'Volunteers of America Upstate New York', 'Volunteers of America Utah', 'Volunteers of America Western Washington'].sort();
+
+        const Disclaimer = () => (
+            <div className="bg-[#fdf2f2] border-2 border-[#fca5a5] rounded-xl p-8 mt-12 mb-6">
+                <p className="text-sm text-gray-700 text-center leading-relaxed">
+                    <strong className="text-[#b91c1c] text-lg block mb-2 font-serif">Important Disclaimer</strong>
+                    VOA Expertise Village facilitates voluntary knowledge sharing across our network. Before listing your expertise or providing consultation, please ensure you have approval from your supervisor and CEO to provide support. This platform is informational only and does not create formal work assignments or obligations.
+                </p>
+            </div>
+        );
+
+        // --- US MAP COMPONENT ---
+        const USMap = ({ experts, onStateClick, selectedState }) => {
+            const getStateData = (state) => {
+                const stateExperts = experts.filter(e => e.state === state);
+                const internalCount = stateExperts.filter(e => e.type === 'internal').length;
+                const consultantCount = stateExperts.filter(e => e.type === 'consultant').length;
+                return { total: stateExperts.length, internalCount, consultantCount };
+            };
+
+            const getStateColor = (state) => {
+                const { total, internalCount, consultantCount } = getStateData(state);
+                if (total === 0) return "#e5e7eb"; 
+                if (state === selectedState) return "#f59e0b"; 
+                
+                if (internalCount > 0 && consultantCount > 0) return "#2563eb"; 
+                if (internalCount > 0) return "#dc2626"; 
+                return "#7e22ce"; 
+            };
+
+            return (
+                <div className="w-full max-w-4xl mx-auto my-8 relative">
+                    <svg viewBox="0 0 959 593" className="w-full h-auto filter drop-shadow-lg">
+                        {Object.entries(STATE_PATHS).map(([state, path]) => {
+                            const { total, internalCount, consultantCount } = getStateData(state);
+                            return (
+                                <path
+                                    key={state}
+                                    d={path}
+                                    fill={getStateColor(state)}
+                                    stroke="white"
+                                    strokeWidth="2"
+                                    className="map-path"
+                                    onClick={() => onStateClick(state)}
+                                >
+                                    <title>{`${state}: ${total} Total (${internalCount} Staff, ${consultantCount} Consultants)`}</title>
+                                </path>
+                            );
+                        })}
+                    </svg>
+                    <div className="absolute bottom-4 right-4 bg-white/90 p-4 rounded-xl text-xs font-bold border border-gray-200 shadow-sm">
+                        <div className="flex items-center gap-2 mb-1"><span className="w-3 h-3 bg-red-600 rounded-full"></span> Staff Experts</div>
+                        <div className="flex items-center gap-2 mb-1"><span className="w-3 h-3 bg-purple-700 rounded-full"></span> Consultants</div>
+                        <div className="flex items-center gap-2"><span className="w-3 h-3 bg-blue-600 rounded-full"></span> Both</div>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- APP ---
+        const ExpertisePlatform = () => {
+            const [currentView, setCurrentView] = useState('welcome');
+            const [viewMode, setViewMode] = useState('grid');
+            // SEED DATA: 10 Pre-loaded experts
+            const [experts, setExperts] = useState([
+                {
+                    id: 1,
+                    name: "Sarah Martinez",
+                    title: "Director of Housing",
+                    email: "smartinez@voa.org",
+                    affiliate: "Volunteers of America Colorado",
+                    expertise: "Housing Management",
+                    categories: ["Housing Management", "Finance"],
+                    type: "internal",
+                    state: "CO",
+                    yearsExperience: 12,
+                    endorsementCount: 4,
+                    lastVerified: new Date().toISOString(),
+                    availabilityType: "detailed",
+                    responseTime: "3-5 days",
+                    description: "Specializing in LIHTC compliance, property operations, and HUD regulations."
+                },
+                {
+                    id: 2,
+                    name: "David Chen",
+                    title: "VP of Veterans Services",
+                    email: "dchen@voa.org",
+                    affiliate: "Volunteers of America Texas",
+                    expertise: "Veterans",
+                    categories: ["Veterans", "Homeless Services"],
+                    type: "internal",
+                    state: "TX",
+                    yearsExperience: 15,
+                    endorsementCount: 6,
+                    lastVerified: new Date().toISOString(),
+                    availabilityType: "both",
+                    responseTime: "24-48 hours",
+                    description: "Expert in SSVF grants, transitional housing programs, and VA partnerships."
+                },
+                {
+                    id: 3,
+                    name: "Elena Rodriguez",
+                    title: "Case Manager Lead",
+                    email: "erodriguez@voa.org",
+                    affiliate: "Volunteers of America Los Angeles",
+                    expertise: "Homeless Services",
+                    categories: ["Homeless Services", "Addiction Treatment"],
+                    type: "internal",
+                    state: "CA",
+                    yearsExperience: 8,
+                    endorsementCount: 2,
+                    lastVerified: new Date().toISOString(),
+                    availabilityType: "brief",
+                    responseTime: "24-48 hours",
+                    description: "Focus on Housing First models and trauma-informed care for unhoused populations."
+                },
+                {
+                    id: 4,
+                    name: "Marcus Johnson",
+                    title: "Senior Grant Writer",
+                    email: "mjohnson@voa.org",
+                    affiliate: "Volunteers of America Greater New York",
+                    expertise: "Finance",
+                    categories: ["Finance", "Strategic Planning"],
+                    type: "internal",
+                    state: "NY",
+                    yearsExperience: 20,
+                    endorsementCount: 10,
+                    lastVerified: new Date().toISOString(),
+                    availabilityType: "detailed",
+                    responseTime: "3-5 days",
+                    description: "Deep experience in federal grant applications and capital campaign strategy."
+                },
+                {
+                    id: 5,
+                    name: "Jennifer Wu",
+                    title: "HR Specialist",
+                    email: "jwu@voa.org",
+                    affiliate: "Volunteers of America Florida",
+                    expertise: "Human Resources",
+                    categories: ["Human Resources", "Strategic Planning"],
+                    type: "internal",
+                    state: "FL",
+                    yearsExperience: 5,
+                    endorsementCount: 1,
+                    lastVerified: new Date().toISOString(),
+                    availabilityType: "brief",
+                    responseTime: "Same Day",
+                    description: "Available to consult on recruitment strategies and employee retention programs."
+                },
+                {
+                    id: 6,
+                    name: "Summit Strategy Group",
+                    title: "Strategic Consulting Firm",
+                    email: "contact@summitstrategy.com",
+                    company: "Summit Strategy Group",
+                    expertise: "Strategic Planning",
+                    categories: ["Strategic Planning", "Finance"],
+                    type: "consultant",
+                    state: "DC",
+                    primaryEndorserName: "Robert Gibson",
+                    primaryEndorserEmail: "rgibson@voa.org",
+                    primaryEndorserAffiliate: "Volunteers of America National Office",
+                    lastVerified: new Date().toISOString(),
+                    availabilityType: "detailed",
+                    responseTime: "24-48 hours",
+                    description: "Specializes in nonprofit strategic alignment and board governance."
+                },
+                {
+                    id: 7,
+                    name: "Beacon Financial Audits",
+                    title: "Audit & Compliance",
+                    email: "info@beaconfa.com",
+                    company: "Beacon Financial Audits",
+                    expertise: "Finance",
+                    categories: ["Finance", "Housing Development"],
+                    type: "consultant",
+                    state: "IL",
+                    primaryEndorserName: "Karen Smith",
+                    primaryEndorserEmail: "ksmith@voa.org",
+                    primaryEndorserAffiliate: "Volunteers of America Illinois",
+                    lastVerified: new Date().toISOString(),
+                    availabilityType: "detailed",
+                    responseTime: "3-5 days",
+                    description: "Trusted partner for single audits and complex nonprofit financial compliance."
+                },
+                {
+                    id: 8,
+                    name: "Creative Impact Agency",
+                    title: "Marketing & Comms",
+                    email: "hello@creativeimpact.com",
+                    company: "Creative Impact Agency",
+                    expertise: "Strategic Planning",
+                    categories: ["Strategic Planning", "Human Resources"],
+                    type: "consultant",
+                    state: "WA",
+                    primaryEndorserName: "Lisa Wong",
+                    primaryEndorserEmail: "lwong@voa.org",
+                    primaryEndorserAffiliate: "Volunteers of America Western Washington",
+                    lastVerified: new Date().toISOString(),
+                    availabilityType: "both",
+                    responseTime: "24-48 hours",
+                    description: "Experts in nonprofit storytelling, rebranding, and digital donor engagement."
+                },
+                {
+                    id: 9,
+                    name: "Inclusive Culture Solutions",
+                    title: "DEI Consultants",
+                    email: "team@inclusiveculture.com",
+                    company: "Inclusive Culture Solutions",
+                    expertise: "Human Resources",
+                    categories: ["Human Resources", "Strategic Planning"],
+                    type: "consultant",
+                    state: "GA",
+                    primaryEndorserName: "James Carter",
+                    primaryEndorserEmail: "jcarter@voa.org",
+                    primaryEndorserAffiliate: "Volunteers of America Southeast",
+                    lastVerified: new Date().toISOString(),
+                    availabilityType: "detailed",
+                    responseTime: "3-5 days",
+                    description: "Helping organizations build inclusive cultures and equitable hiring practices."
+                },
+                {
+                    id: 10,
+                    name: "Fundraising Architects",
+                    title: "Capital Campaign Counsel",
+                    email: "growth@fundraisingarchitects.com",
+                    company: "Fundraising Architects",
+                    expertise: "Finance",
+                    categories: ["Finance", "Housing Development"],
+                    type: "consultant",
+                    state: "MA",
+                    primaryEndorserName: "Emily White",
+                    primaryEndorserEmail: "ewhite@voa.org",
+                    primaryEndorserAffiliate: "Volunteers of America Massachusetts",
+                    lastVerified: new Date().toISOString(),
+                    availabilityType: "detailed",
+                    responseTime: "24-48 hours",
+                    description: "Specialists in feasibility studies and major donor solicitation coaching."
+                }
+            ]);
+            
+            const [basket, setBasket] = useState([]);
+            const [showBasket, setShowBasket] = useState(false);
+            const [activityLog, setActivityLog] = useState([]);
+            const [searchTerm, setSearchTerm] = useState('');
+            const [selectedCategory, setSelectedCategory] = useState('all');
+            const [selectedType, setSelectedType] = useState('all');
+            const [selectedState, setSelectedState] = useState(null);
+            
+            // Modal States
+            const [showAddModal, setShowAddModal] = useState(false);
+            const [viewExpertDetails, setViewExpertDetails] = useState(null);
+            const [editingExpert, setEditingExpert] = useState(null);
+            const [modalType, setModalType] = useState('internal'); 
+            const [showEndorseForm, setShowEndorseForm] = useState(null); 
+            const [endorsementData, setEndorsementData] = useState({ name: '', affiliate: 'Volunteers of America National Office', email: '', impact: '' });
+            const [showEndorsementList, setShowEndorsementList] = useState(null); 
+
+            const [newExpertise, setNewExpertise] = useState({
+                name: '', title: '', email: '', affiliate: 'Volunteers of America National Office',
+                categories: [], expertise: '', description: '',
+                availabilityType: 'both', responseTime: '24-48 hours', type: 'internal',
+                company: '', contactEmail: '', endorsementCount: 0, yearsExperience: 0,
+                primaryEndorserName: '', primaryEndorserEmail: '', primaryEndorserAffiliate: 'Volunteers of America National Office',
+                lastVerified: '', state: 'VA'
+            });
+
+            useEffect(() => {
+                // Initialize Local Storage if empty, else load it
+                const stored = localStorage.getItem('voa-experts-data');
+                if (stored) {
+                    setExperts(JSON.parse(stored));
+                } else {
+                    // Save seed data to local storage on first load so it persists for this user
+                    localStorage.setItem('voa-experts-data', JSON.stringify(experts));
+                }
+
+                const storedLog = localStorage.getItem('voa-activity-log');
+                if (storedLog) {
+                    setActivityLog(JSON.parse(storedLog));
+                } else {
+                    const initialLog = [{ text: "The Village is open for business!", time: new Date().toISOString() }];
+                    setActivityLog(initialLog);
+                }
+                
+                const storedBasket = localStorage.getItem('voa-basket');
+                if (storedBasket) setBasket(JSON.parse(storedBasket));
+            }, []);
+
+            const save = (data) => {
+                localStorage.setItem('voa-experts-data', JSON.stringify(data));
+                setExperts(data);
+            };
+
+            const toggleBasket = (e, expert) => {
+                e.stopPropagation();
+                let newBasket;
+                if (basket.some(b => b.id === expert.id)) {
+                    newBasket = basket.filter(b => b.id !== expert.id);
+                } else {
+                    newBasket = [...basket, expert];
+                }
+                setBasket(newBasket);
+                localStorage.setItem('voa-basket', JSON.stringify(newBasket));
+            };
+
+            const logActivity = (text) => {
+                const newLog = [{ text, time: new Date().toISOString() }, ...activityLog].slice(0, 5);
+                setActivityLog(newLog);
+                localStorage.setItem('voa-activity-log', JSON.stringify(newLog));
+            };
+
+            const isProfileFresh = (dateString) => {
+                if (!dateString) return false;
+                const diffDays = Math.ceil(Math.abs(new Date() - new Date(dateString)) / (1000 * 60 * 60 * 24));
+                return diffDays <= 90;
+            };
+
+            const handleSubmit = () => {
+                if (!newExpertise.name || !newExpertise.expertise || !newExpertise.email || newExpertise.categories.length === 0) {
+                    return alert("Please fill in required fields: Name, Email, Primary Domain, and at least one Category.");
+                }
+                
+                if (modalType === 'consultant' && (!newExpertise.primaryEndorserName || !newExpertise.primaryEndorserEmail)) {
+                    return alert("Please provide the Primary Endorser's Name and Email.");
+                }
+
+                const expertToSave = { 
+                    ...newExpertise, 
+                    type: modalType,
+                    lastVerified: new Date().toISOString()
+                };
+                if (!expertToSave.endorsements) expertToSave.endorsements = [];
+
+                const updated = editingExpert 
+                    ? experts.map(e => e.id === editingExpert.id ? { ...expertToSave, id: e.id, rating: e.rating, requestsHelped: e.requestsHelped } : e)
+                    : [...experts, { ...expertToSave, id: Date.now(), rating: 5.0, requestsHelped: 0, endorsements: [] }];
+                
+                save(updated);
+                logActivity(editingExpert ? `${newExpertise.name} updated their profile` : `${newExpertise.name} contributed to the Village`);
+                setShowAddModal(false);
+                setEditingExpert(null);
+                setNewExpertise({ 
+                    name: '', title: '', email: '', affiliate: 'Volunteers of America National Office', 
+                    categories: [], expertise: '', description: '', availabilityType: 'both', 
+                    responseTime: '24-48 hours', type: 'internal', company: '', contactEmail: '', 
+                    endorsementCount: 0, yearsExperience: 0, primaryEndorserName: '', primaryEndorserEmail: '', 
+                    primaryEndorserAffiliate: 'Volunteers of America National Office',
+                    lastVerified: '', state: 'VA'
+                });
+                setModalType('internal');
+            };
+
+            const openAddModal = (type) => {
+                setModalType(type);
+                setNewExpertise(prev => ({ ...prev, type: type }));
+                setShowAddModal(true);
+            };
+
+            const secureEdit = (e, expert) => {
+                e.stopPropagation();
+                const inputPin = prompt("Enter Admin PIN to Edit:");
+                if (inputPin === MASTER_PIN) {
+                    setEditingExpert(expert);
+                    setModalType(expert.type);
+                    setNewExpertise(expert);
+                    setShowAddModal(true);
+                } else {
+                    alert("Access Denied. Only Admins can edit profiles.");
+                }
+            };
+
+            const secureDelete = (e, expert) => {
+                e.stopPropagation();
+                const inputPin = prompt("Enter Admin PIN to Delete:");
+                if (inputPin === MASTER_PIN) {
+                    if (confirm(`Are you sure you want to delete ${expert.name}?`)) {
+                        save(experts.filter(ex => ex.id !== expert.id));
+                        logActivity(`${expert.name} left the Village`);
+                    }
+                } else {
+                    alert("Access Denied. Only Admins can delete profiles.");
+                }
+            };
+
+            const submitEndorsement = () => {
+                if(!endorsementData.name || !endorsementData.email) return alert("Please fill in all fields.");
+                const updatedExperts = experts.map(ex => {
+                    if(ex.id === showEndorseForm.id) {
+                        const currentEndorsements = ex.endorsements || [];
+                        return { 
+                            ...ex, 
+                            endorsements: [...currentEndorsements, { ...endorsementData, date: new Date().toISOString() }],
+                            endorsementCount: (ex.endorsementCount || 0) + 1
+                        };
+                    }
+                    return ex;
+                });
+                save(updatedExperts);
+                logActivity(`${endorsementData.name} endorsed ${showEndorseForm.name}`);
+                setShowEndorseForm(null);
+                setEndorsementData({ name: '', affiliate: 'Volunteers of America National Office', email: '', impact: '' });
+                alert("Endorsement submitted successfully!");
+            };
+
+            const exportToCSV = (dataToExport = filtered, filename = "voa_village_experts.csv") => {
+                const headers = ["Name", "Title", "Type", "Affiliate/Company", "Email", "State", "Primary Skill", "Domains", "Endorsements", "Last Verified"];
+                const rows = dataToExport.map(e => [
+                    `"${e.name}"`, `"${e.title}"`, e.type, `"${e.type === 'internal' ? e.affiliate : e.company}"`, e.email, e.state, `"${e.expertise}"`, `"${e.categories.join(', ')}"`, e.endorsementCount, `"${new Date(e.lastVerified).toLocaleDateString()}"`
+                ]);
+                const csvContent = "data:text/csv;charset=utf-8," + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+                const encodedUri = encodeURI(csvContent);
+                const link = document.createElement("a");
+                link.setAttribute("href", encodedUri);
+                link.setAttribute("download", filename);
+                document.body.appendChild(link);
+                link.click();
+            };
+
+            const mapFilteredExperts = experts.filter(e => {
+                const matchesSearch = e.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                                     e.expertise.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                     (e.affiliate && e.affiliate.toLowerCase().includes(searchTerm.toLowerCase()));
+                const matchesCat = selectedCategory === 'all' || e.categories.includes(selectedCategory);
+                const matchesType = selectedType === 'all' || e.type === selectedType;
+                return matchesSearch && matchesCat && matchesType;
+            });
+
+            const filtered = mapFilteredExperts.filter(e => {
+                const matchesState = selectedState ? e.state === selectedState : true;
+                return matchesState;
+            });
+
+            const getCategoryCounts = (cat) => {
+                const internal = experts.filter(e => e.categories.includes(cat) && e.type === 'internal').length;
+                const consultant = experts.filter(e => e.categories.includes(cat) && e.type === 'consultant').length;
+                return { internal, consultant };
+            };
+
+            const handleCategoryToggle = (cat) => {
+                setNewExpertise(prev => ({
+                    ...prev,
+                    categories: prev.categories.includes(cat) ? prev.categories.filter(c => c !== cat) : [...prev.categories, cat]
+                }));
+            };
+
+            const toggleViewMode = () => {
+                setViewMode(prev => prev === 'grid' ? 'map' : 'grid');
+                if (viewMode === 'map') setSelectedState(null); 
+            };
+
+            // WELCOME VIEW
+            if (currentView === 'welcome') {
+                return (
+                    <div className="min-h-screen bg-gradient-to-br from-[#fef2f2] via-white to-[#f0f9ff] flex flex-col items-center justify-center p-6 text-center">
+                        <div className="max-w-6xl w-full">
+                            <img src={LOGO_URL} className="mx-auto w-32 h-32 rounded-full mb-6 border-4 border-white shadow-xl object-cover" alt="Logo" />
+                            <h1 className="text-5xl font-black text-gray-800 mb-4 font-serif tracking-tight">VOA Expertise Village</h1>
+                            <p className="text-xl text-gray-600 mb-12 uppercase tracking-widest font-bold">It takes a village, sharing our collective knowledge.</p>
+                            <div className="grid md:grid-cols-3 gap-8 text-left mb-12">
+                                <button onClick={() => setCurrentView('browse')} className="bg-white rounded-[2rem] shadow-xl village-shadow p-10 hover:scale-105 transition-all border-b-8 border-indigo-500 group">
+                                    <div className="text-indigo-600 mb-6 group-hover:scale-110 transition-transform"><UserSearch /></div>
+                                    <h2 className="text-2xl font-bold mb-2 text-gray-800">Seek Wisdom</h2>
+                                    <p className="text-gray-500 text-sm">Locate skills and knowledge within our network.</p>
+                                </button>
+                                <button onClick={() => { openAddModal('internal'); setCurrentView('browse'); }} className="bg-white rounded-[2rem] shadow-xl village-shadow p-10 hover:scale-105 transition-all border-b-8 border-red-500 group">
+                                    <div className="text-red-600 mb-6 group-hover:scale-110 transition-transform"><UserPlus /></div>
+                                    <h2 className="text-2xl font-bold mb-2 text-gray-800">Contribute to the Village</h2>
+                                    <p className="text-gray-500 text-sm">Offer specific expertise and availability to help colleagues succeed.</p>
+                                </button>
+                                <button onClick={() => { openAddModal('consultant'); setCurrentView('browse'); }} className="bg-white rounded-[2rem] shadow-xl village-shadow p-10 hover:scale-105 transition-all border-b-8 border-purple-500 group">
+                                    <div className="text-purple-600 mb-6 group-hover:scale-110 transition-transform"><Briefcase /></div>
+                                    <h2 className="text-2xl font-bold mb-2 text-gray-800">Share a Trusted Consultant</h2>
+                                    <p className="text-gray-500 text-sm">Add trusted external partners to the village.</p>
+                                </button>
+                            </div>
+                            
+                            <div className="max-w-2xl mx-auto bg-white/50 backdrop-blur rounded-2xl p-6 border border-gray-200">
+                                <h3 className="text-xs font-black uppercase tracking-widest text-gray-400 mb-4 flex items-center justify-center gap-2"><Activity /> Latest From the Village</h3>
+                                <div className="space-y-3">
+                                    {activityLog.map((log, i) => (
+                                        <div key={i} className="text-sm text-gray-600 flex justify-between items-center border-b border-gray-100 pb-2 last:border-0 last:pb-0">
+                                            <span>{log.text}</span>
+                                            <span className="text-[10px] text-gray-400">{new Date(log.time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <Disclaimer />
+                        </div>
+                    </div>
+                );
+            }
+
+            // BROWSE VIEW
+            return (
+                <div className="min-h-screen bg-[#f8f5f2] flex flex-col font-sans">
+                    <nav className="bg-gradient-to-r from-[#991b1b] to-[#1e3a8a] text-white p-4 shadow-lg sticky top-0 z-40">
+                        <div className="max-w-7xl mx-auto flex justify-between items-center px-4">
+                            <div className="flex items-center gap-3">
+                                <img src={LOGO_URL} className="w-10 h-10 rounded-full bg-white p-0.5 border-2 border-white object-cover" alt="Logo" />
+                                <span className="text-xl font-bold tracking-tight font-serif">VOA Expertise Village</span>
+                            </div>
+                            <div className="flex gap-3">
+                                <button onClick={() => setShowBasket(true)} className="bg-white/10 hover:bg-white/20 px-4 py-2 rounded-lg flex items-center gap-2 transition font-medium relative">
+                                    <ShoppingBag /> Village Basket
+                                    {basket.length > 0 && <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] w-5 h-5 flex items-center justify-center rounded-full font-bold">{basket.length}</span>}
+                                </button>
+                                <button onClick={() => setCurrentView('welcome')} className="bg-white/10 hover:bg-white/20 px-4 py-2 rounded-lg flex items-center gap-2 transition font-medium"><Home /> Village Square</button>
+                            </div>
+                        </div>
+                    </nav>
+
+                    <main className="max-w-7xl mx-auto p-6 w-full flex-1">
+                        <div className="bg-white rounded-[2rem] shadow-sm village-shadow p-8 mb-8 border border-gray-100">
+                            <div className="flex justify-between items-end mb-6 border-b pb-4">
+                                <h2 className="text-3xl font-black text-gray-800 font-serif">Browse by Domains</h2>
+                                <button onClick={toggleViewMode} className="bg-gray-100 text-gray-600 px-4 py-2 rounded-xl text-xs font-bold uppercase hover:bg-gray-200 transition flex items-center gap-2">
+                                    {viewMode === 'grid' ? <><MapIcon /> View Map</> : <><GridIcon /> View Grid</>}
+                                </button>
+                            </div>
+
+                            <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+                                {DOMAINS.map(cat => {
+                                    const { internal, consultant } = getCategoryCounts(cat);
+                                    const isSelected = selectedCategory === cat;
+                                    return (
+                                        <button key={cat} onClick={() => setSelectedCategory(cat)} className={`p-4 rounded-2xl border-2 transition-all text-left flex flex-col justify-between h-28 shadow-sm ${isSelected ? 'border-red-600 bg-red-50 ring-2 ring-red-100' : 'border-gray-200 bg-white hover:border-red-200 hover:bg-gray-50'}`}>
+                                            <div className="flex gap-2 mb-2">
+                                                <div className="bg-red-100 text-red-800 px-2 py-1 rounded-md text-[9px] font-black uppercase tracking-tight">{internal} Staff</div>
+                                                <div className="bg-purple-100 text-purple-800 px-2 py-1 rounded-md text-[9px] font-black uppercase tracking-tight">{consultant} Cons.</div>
+                                            </div>
+                                            <span className="font-black text-sm text-gray-800 leading-tight">{cat}</span>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+
+                            <div className="flex flex-col md:flex-row gap-4 items-end mb-8">
+                                <div className="flex-1 w-full relative">
+                                    <div className="absolute left-3 top-3.5 text-gray-400"><Search /></div>
+                                    <input type="text" className="w-full pl-10 pr-4 py-3.5 bg-gray-50 border-2 border-gray-200 rounded-2xl focus:ring-4 focus:ring-red-100 focus:border-red-500 outline-none transition" placeholder="Search by name, skill, or affiliate..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
+                                </div>
+                                
+                                <div className="flex bg-white p-1.5 rounded-2xl border-2 border-gray-300 shadow-sm">
+                                    <button onClick={() => setSelectedType('all')} className={`px-5 py-2.5 rounded-xl text-xs font-bold uppercase transition ${selectedType === 'all' ? 'bg-gray-800 text-white shadow-md' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'}`}>All Experts</button>
+                                    <button onClick={() => setSelectedType('internal')} className={`px-5 py-2.5 rounded-xl text-xs font-bold uppercase transition ${selectedType === 'internal' ? 'bg-red-700 text-white shadow-md' : 'text-gray-500 hover:text-red-700 hover:bg-red-50'}`}>Staff Experts</button>
+                                    <button onClick={() => setSelectedType('consultant')} className={`px-5 py-2.5 rounded-xl text-xs font-bold uppercase transition ${selectedType === 'consultant' ? 'bg-purple-700 text-white shadow-md' : 'text-gray-500 hover:text-purple-700 hover:bg-purple-50'}`}>Consultant Experts</button>
+                                </div>
+
+                                {(selectedCategory !== 'all' || selectedState) && <button onClick={() => { setSelectedCategory('all'); setSelectedState(null); }} className="bg-gray-200 text-gray-600 px-6 py-3.5 rounded-2xl font-black text-xs uppercase hover:bg-gray-300 transition">Reset Filters</button>}
+                                <button onClick={() => exportToCSV(filtered)} className="bg-blue-50 text-blue-700 px-6 py-3.5 rounded-2xl font-black text-xs uppercase hover:bg-blue-100 transition border border-blue-200 flex items-center gap-2"><Download /> CSV</button>
+                            </div>
+                        </div>
+
+                        {viewMode === 'map' && (
+                            <div className="mb-8 p-6 bg-white rounded-[2rem] border border-gray-200 shadow-sm">
+                                {selectedState ? (
+                                    <div className="text-center mb-6">
+                                        <h3 className="text-2xl font-black text-gray-800 mb-2">Viewing Experts in {selectedState}</h3>
+                                        <div className="flex justify-center gap-4 text-sm font-bold">
+                                            <span className="text-red-700">{mapFilteredExperts.filter(e => e.state === selectedState && e.type === 'internal').length} Staff</span>
+                                            <span className="text-purple-700">{mapFilteredExperts.filter(e => e.state === selectedState && e.type === 'consultant').length} Consultants</span>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <h3 className="text-center font-bold text-gray-400 uppercase tracking-widest text-sm mb-4">Click a state to filter experts</h3>
+                                )}
+                                <USMap experts={mapFilteredExperts} onStateClick={setSelectedState} selectedState={selectedState} />
+                            </div>
+                        )}
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {filtered.map(e => {
+                                const isElder = e.yearsExperience >= 10;
+                                const isGuide = e.endorsementCount >= 3;
+                                const isInBasket = basket.some(b => b.id === e.id);
+                                return (
+                                <div key={e.id} onClick={() => setViewExpertDetails(e)} className="bg-white rounded-[2rem] shadow-sm border border-gray-200 hover:shadow-2xl hover:border-red-400 transition-all cursor-pointer group flex flex-col overflow-hidden relative min-h-[400px]">
+                                    <div className={`h-3 ${e.type === 'internal' ? 'bg-red-700' : 'bg-purple-700'}`}></div>
+                                    <div className="p-8 flex-1">
+                                        <div className="flex justify-between items-start mb-4">
+                                            <div className="w-14 h-14 bg-gray-100 rounded-full flex items-center justify-center text-gray-600 group-hover:bg-red-50 group-hover:text-red-600 transition relative">
+                                                <span className="text-xl font-black font-serif tracking-tighter">{getInitials(e.name)}</span>
+                                                {isElder && <div className="absolute -top-1 -right-1 bg-yellow-400 w-4 h-4 rounded-full border-2 border-white" title="Village Elder (10+ Years)"></div>}
+                                            </div>
+                                            <div className="flex gap-1" onClick={ev => ev.stopPropagation()}>
+                                                {/* BASKET TOGGLE BUTTON */}
+                                                <button onClick={(ev) => toggleBasket(ev, e)} className={`p-2 rounded-full transition ${isInBasket ? 'bg-blue-100 text-blue-600' : 'hover:bg-gray-100 text-gray-300'}`} title="Add to Basket">
+                                                    {isInBasket ? <BookmarkFilled /> : <Bookmark />}
+                                                </button>
+                                                <button onClick={(ev) => secureEdit(ev, e)} className="p-2 hover:bg-gray-100 rounded-full text-gray-300 transition" title="Edit with PIN"><Edit /></button>
+                                                <button onClick={(ev) => secureDelete(ev, e)} className="p-2 hover:bg-red-50 rounded-full text-gray-300 hover:text-red-500 transition" title="Delete with PIN"><Trash2 /></button>
+                                            </div>
+                                        </div>
+                                        
+                                        <div className="flex gap-2 mb-2">
+                                            {isElder && <span className="text-[9px] bg-yellow-50 text-yellow-700 px-2 py-0.5 rounded border border-yellow-200 font-bold uppercase">Village Elder</span>}
+                                            {isGuide && <span className="text-[9px] bg-blue-50 text-blue-700 px-2 py-0.5 rounded border border-blue-200 font-bold uppercase">Trusted Guide</span>}
+                                        </div>
+
+                                        <h3 className="font-black text-xl text-gray-900 mb-1 group-hover:text-red-700 transition font-serif">{e.name}</h3>
+                                        <p className="text-sm font-bold text-gray-500 mb-1 leading-tight">{e.title}</p>
+                                        <p className="text-[11px] font-black text-blue-700 uppercase tracking-tighter mb-2">{e.type === 'internal' ? e.affiliate : e.company}</p>
+                                        <p className="text-xs text-gray-500 flex items-center gap-1 mb-2 border-b border-gray-100 pb-2 truncate"><Mail /> {e.email}</p>
+                                        
+                                        <div className="flex items-center gap-1 mb-4">
+                                            <CalendarCheck className={`w-3 h-3 ${isProfileFresh(e.lastVerified) ? 'text-green-500' : 'text-orange-500'}`} />
+                                            <span className={`text-[9px] uppercase font-bold tracking-wider ${isProfileFresh(e.lastVerified) ? 'text-green-600' : 'text-orange-500'}`}>
+                                                {e.lastVerified ? (isProfileFresh(e.lastVerified) ? 'Verified Fresh' : 'Needs Update') : 'Unverified'}
+                                            </span>
+                                        </div>
+
+                                        <div className="mb-4 flex items-center gap-2 relative">
+                                            {(e.endorsements && e.endorsements.length > 0 || e.primaryEndorserName) && (
+                                                <button 
+                                                    onClick={(ev) => { ev.stopPropagation(); setShowEndorsementList(e); }}
+                                                    className="inline-flex items-center gap-1 bg-green-50 text-green-800 px-3 py-1 rounded-full border border-green-200 text-[10px] font-bold uppercase tracking-wide hover:bg-green-100 transition"
+                                                >
+                                                    <ThumbsUp /> {(e.endorsements ? e.endorsements.length : 0) + (e.primaryEndorserName ? 1 : 0)} Endorsements
+                                                </button>
+                                            )}
+                                            <button 
+                                                onClick={(ev) => { ev.stopPropagation(); setShowEndorseForm(e); }}
+                                                className="bg-gray-50 hover:bg-green-50 text-gray-500 hover:text-green-700 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide border border-gray-200 hover:border-green-300 transition flex items-center gap-1 z-10 relative"
+                                            >
+                                                <ThumbsUp /> Endorse
+                                            </button>
+                                        </div>
+
+                                        <div className="bg-[#fffcf8] rounded-2xl p-4 border border-orange-100 mb-4">
+                                            <span className="text-[10px] font-black text-orange-400 uppercase block mb-1">Primary Wisdom</span>
+                                            <p className="text-red-900 font-black leading-tight text-lg font-serif">{e.expertise}</p>
+                                        </div>
+
+                                        <div className="flex flex-wrap gap-1">
+                                            {e.categories.slice(0, 3).map(cat => <span key={cat} className="text-[9px] bg-white border border-gray-200 px-2 py-1 rounded-full font-bold text-gray-500 uppercase">{cat}</span>)}
+                                            {e.categories.length > 3 && <span className="text-[9px] text-gray-400 font-bold ml-1">+{e.categories.length - 3} more</span>}
+                                        </div>
+                                    </div>
+                                    {/* FOOTER BANNER - FLEXBOX ALIGNED TO BOTTOM */}
+                                    <div className="px-8 py-4 bg-gray-50 border-t flex justify-between items-center group-hover:bg-red-50 transition mt-auto">
+                                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{e.type === 'consultant' ? 'External Consultant' : 'Internal Staff'}</span>
+                                        <span className="text-red-700 text-[10px] font-black uppercase tracking-widest flex items-center gap-1 group-hover:translate-x-1 transition-transform">View Full Profile →</span>
+                                    </div>
+                                </div>
+                            )})}
+                        </div>
+                        {filtered.length === 0 && (
+                            <div className="text-center py-20 bg-white rounded-[2rem] border-4 border-dashed border-gray-200">
+                                <p className="text-gray-400 font-bold text-xl">No experts found matching your criteria.</p>
+                            </div>
+                        )}
+                        <Disclaimer />
+                    </main>
+
+                    {/* BASKET MODAL - PORTAL */}
+                    {showBasket && (
+                        <ModalPortal>
+                            <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in">
+                                <div className="bg-white rounded-[2rem] w-full max-w-3xl shadow-2xl p-8 relative animate-slide-up border-t-8 border-blue-600 max-h-[80vh] flex flex-col">
+                                    <div className="flex justify-between items-center mb-6 border-b pb-4">
+                                        <h2 className="text-3xl font-black text-blue-900 font-serif flex items-center gap-2"><ShoppingBag /> Village Basket</h2>
+                                        <button onClick={() => setShowBasket(false)} className="text-gray-400 hover:text-gray-600"><X /></button>
+                                    </div>
+                                    
+                                    <div className="flex-1 overflow-y-auto mb-6">
+                                        {basket.length === 0 ? (
+                                            <div className="text-center py-12 text-gray-400">
+                                                <p className="mb-2">Your basket is empty.</p>
+                                                <p className="text-xs uppercase font-bold tracking-widest">Add experts by clicking the bookmark icon on their cards.</p>
+                                            </div>
+                                        ) : (
+                                            <div className="space-y-4">
+                                                {basket.map(item => (
+                                                    <div key={item.id} className="flex justify-between items-center bg-gray-50 p-4 rounded-xl border border-gray-200">
+                                                        <div className="flex items-center gap-4">
+                                                            <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center border border-gray-200 font-serif font-black text-gray-600">{getInitials(item.name)}</div>
+                                                            <div>
+                                                                <h4 className="font-bold text-gray-900">{item.name}</h4>
+                                                                <p className="text-xs text-gray-500">{item.title} • {item.type === 'internal' ? item.affiliate : item.company}</p>
+                                                            </div>
+                                                        </div>
+                                                        <button onClick={(e) => toggleBasket(e, item)} className="text-red-400 hover:text-red-600"><Trash2 /></button>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {basket.length > 0 && (
+                                        <div className="pt-4 border-t flex justify-end gap-4">
+                                            <button onClick={() => setBasket([])} className="px-6 py-3 rounded-xl font-bold text-gray-500 hover:bg-gray-100 transition uppercase text-xs tracking-widest">Clear All</button>
+                                            <button onClick={() => exportToCSV(basket, "voa_village_briefing.csv")} className="bg-blue-700 text-white px-8 py-3 rounded-xl font-black uppercase tracking-widest hover:bg-blue-800 transition shadow-lg shadow-blue-100 flex items-center gap-2">
+                                                <Download className="w-4 h-4" /> Export Briefing
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </ModalPortal>
+                    )}
+
+                    {/* ENDORSEMENT FORM MODAL - PORTAL */}
+                    {showEndorseForm && (
+                        <ModalPortal>
+                            <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in">
+                                <div className="bg-white rounded-[2rem] w-full max-w-lg shadow-2xl p-8 relative animate-slide-up border-t-8 border-green-600">
+                                    <div className="flex justify-between items-center mb-6">
+                                        <h2 className="text-2xl font-black text-green-800 font-serif">Endorse {showEndorseForm.name}</h2>
+                                        <button onClick={() => setShowEndorseForm(null)} className="text-gray-400 hover:text-gray-600"><X /></button>
+                                    </div>
+                                    <div className="space-y-4">
+                                        <p className="text-sm text-gray-500 mb-4 font-bold">Provide details to endorse this colleague.</p>
+                                        <div>
+                                            <label className="text-xs font-black text-gray-400 uppercase tracking-widest">Your Name *</label>
+                                            <input type="text" className="w-full p-3 border-2 border-gray-200 rounded-xl mt-1 outline-none focus:border-green-500" value={endorsementData.name} onChange={e => setEndorsementData({...endorsementData, name: e.target.value})} />
+                                        </div>
+                                        <div>
+                                            <label className="text-xs font-black text-gray-400 uppercase tracking-widest">Your Email *</label>
+                                            <input type="email" className="w-full p-3 border-2 border-gray-200 rounded-xl mt-1 outline-none focus:border-green-500" value={endorsementData.email} onChange={e => setEndorsementData({...endorsementData, email: e.target.value})} />
+                                        </div>
+                                        <div>
+                                            <label className="text-xs font-black text-gray-400 uppercase tracking-widest">Your Affiliate</label>
+                                            <select className="w-full p-3 border-2 border-gray-200 rounded-xl mt-1 outline-none focus:border-green-500" value={endorsementData.affiliate} onChange={e => setEndorsementData({...endorsementData, affiliate: e.target.value})}>
+                                                {AFFILIATES.map(a => <option key={a} value={a}>{a}</option>)}
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="text-xs font-black text-gray-400 uppercase tracking-widest">Success Story (Impact) *</label>
+                                            <textarea className="w-full p-3 border-2 border-gray-200 rounded-xl mt-1 outline-none focus:border-green-500" rows="3" placeholder="What problem did they help solve?" value={endorsementData.impact} onChange={e => setEndorsementData({...endorsementData, impact: e.target.value})}></textarea>
+                                        </div>
+                                        <button onClick={submitEndorsement} className="w-full bg-green-600 text-white py-4 rounded-xl font-black uppercase tracking-widest mt-4 hover:bg-green-700 shadow-lg shadow-green-100 transition">Submit Endorsement</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </ModalPortal>
+                    )}
+
+                    {/* VIEW ENDORSEMENTS LIST MODAL - PORTAL */}
+                    {showEndorsementList && (
+                        <ModalPortal>
+                            <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in">
+                                <div className="bg-white rounded-[2rem] w-full max-w-lg shadow-2xl p-8 max-h-[80vh] overflow-y-auto relative animate-slide-up border-t-8 border-green-600">
+                                    <div className="flex justify-between items-center mb-6 border-b pb-4">
+                                        <h2 className="text-2xl font-black text-gray-800 font-serif">Endorsements</h2>
+                                        <button onClick={() => setShowEndorsementList(null)} className="text-gray-400 hover:text-gray-600"><X /></button>
+                                    </div>
+                                    <div className="space-y-4">
+                                        {/* PRIMARY ENDORSER DISPLAY */}
+                                        {showEndorsementList.primaryEndorserName && (
+                                            <div className="bg-purple-50 p-6 rounded-2xl border-2 border-purple-100 relative overflow-hidden">
+                                                <div className="absolute top-0 right-0 bg-purple-200 text-purple-900 text-[9px] font-black px-3 py-1 rounded-bl-xl uppercase tracking-widest">Primary Endorser</div>
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <BadgeCheck className="text-purple-600 w-5 h-5" />
+                                                    <p className="font-bold text-purple-900 text-lg">{showEndorsementList.primaryEndorserName}</p>
+                                                </div>
+                                                <p className="text-xs text-purple-700 font-black uppercase tracking-wide ml-7">{showEndorsementList.primaryEndorserAffiliate}</p>
+                                                <p className="text-xs text-gray-500 mt-1 ml-7 flex items-center gap-1"><Mail className="w-3 h-3"/> {showEndorsementList.primaryEndorserEmail}</p>
+                                            </div>
+                                        )}
+
+                                        {(!showEndorsementList.endorsements || showEndorsementList.endorsements.length === 0) && !showEndorsementList.primaryEndorserName ? (
+                                            <p className="text-gray-500 italic text-center py-8">No additional endorsements yet.</p>
+                                        ) : (
+                                            (showEndorsementList.endorsements || []).map((end, idx) => (
+                                                <div key={idx} className="bg-green-50 p-6 rounded-2xl border border-green-100">
+                                                    <div className="flex items-center gap-2 mb-2">
+                                                        <ThumbsUp className="w-4 h-4 text-green-600"/>
+                                                        <p className="font-bold text-green-900">{end.name}</p>
+                                                    </div>
+                                                    <p className="text-xs text-green-700 font-bold uppercase tracking-wide ml-6">{end.affiliate}</p>
+                                                    <p className="text-xs text-gray-400 mt-1 ml-6 flex items-center gap-1"><Mail className="w-3 h-3"/> {end.email}</p>
+                                                    {end.impact && <div className="mt-3 ml-6 bg-white p-3 rounded-lg border border-green-100 text-sm text-gray-600 italic">"{end.impact}"</div>}
+                                                    <p className="text-[10px] text-gray-400 mt-2 text-right">{new Date(end.date).toLocaleDateString()}</p>
+                                                </div>
+                                            ))
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        </ModalPortal>
+                    )}
+
+                    {/* DETAIL MODAL - PORTAL */}
+                    {viewExpertDetails && (
+                        <ModalPortal>
+                            <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in">
+                                <div className="bg-white rounded-[2.5rem] w-full max-w-2xl shadow-2xl flex flex-col overflow-hidden max-h-[90vh] animate-slide-up">
+                                    <div className={`h-4 ${viewExpertDetails.type === 'internal' ? 'bg-red-700' : 'bg-purple-700'}`}></div>
+                                    <div className="p-10 overflow-y-auto">
+                                        <div className="flex justify-between items-start mb-8">
+                                            <div className="flex items-center gap-6">
+                                                <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center text-gray-600 relative">
+                                                    <span className="text-3xl font-black font-serif tracking-tighter">{getInitials(viewExpertDetails.name)}</span>
+                                                    {viewExpertDetails.yearsExperience >= 10 && <div className="absolute -bottom-2 -right-2 bg-yellow-400 text-yellow-900 text-[9px] font-black px-2 py-1 rounded-full border-2 border-white uppercase tracking-wider">Elder</div>}
+                                                </div>
+                                                <div>
+                                                    <h2 className="text-4xl font-black text-gray-900 tracking-tighter font-serif">{viewExpertDetails.name}</h2>
+                                                    <p className="text-lg font-bold text-red-700 mb-1">{viewExpertDetails.title}</p>
+                                                    <p className="text-sm font-black text-blue-800 uppercase tracking-tighter">{viewExpertDetails.affiliate || viewExpertDetails.company}</p>
+                                                    <p className="text-sm text-gray-500 mt-2 flex items-center gap-2"><Mail /> {viewExpertDetails.email}</p>
+                                                    <div className="mt-2 flex items-center gap-2">
+                                                        <span className={`text-[10px] uppercase font-bold tracking-wider px-2 py-1 rounded border ${isProfileFresh(viewExpertDetails.lastVerified) ? 'bg-green-50 text-green-700 border-green-200' : 'bg-orange-50 text-orange-700 border-orange-200'}`}>
+                                                            {isProfileFresh(viewExpertDetails.lastVerified) ? 'Verified Fresh' : 'Needs Update'}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <button onClick={() => setViewExpertDetails(null)} className="p-3 bg-gray-100 rounded-full hover:bg-gray-200 transition"><X /></button>
+                                        </div>
+
+                                        <div className="space-y-8">
+                                            <div className="bg-[#fffcf8] p-8 rounded-[2rem] border-2 border-orange-100 shadow-sm">
+                                                <h4 className="text-[10px] font-black text-orange-400 uppercase tracking-widest mb-2">Area of Specialization</h4>
+                                                <p className="text-3xl font-black text-gray-900 mb-3 leading-tight font-serif">{viewExpertDetails.expertise}</p>
+                                                <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{viewExpertDetails.description || "No specific details provided yet."}</p>
+                                            </div>
+
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div className="bg-gray-50 p-6 rounded-[2rem] border border-gray-200 text-center">
+                                                    <span className="text-[10px] font-black text-gray-400 uppercase block mb-1">Response Time</span>
+                                                    <p className="font-bold text-gray-800 flex items-center justify-center gap-2"><Clock /> {viewExpertDetails.responseTime}</p>
+                                                </div>
+                                                <div className="bg-gray-50 p-6 rounded-[2rem] border border-gray-200 text-center">
+                                                    <span className="text-[10px] font-black text-gray-400 uppercase block mb-1">Support Type Offered</span>
+                                                    <p className="font-bold text-gray-800 capitalize">{SUPPORT_TYPES[viewExpertDetails.availabilityType] || viewExpertDetails.availabilityType}</p>
+                                                </div>
+                                            </div>
+
+                                            <div>
+                                                <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Village Tags</h4>
+                                                <div className="flex flex-wrap gap-2">
+                                                    {viewExpertDetails.categories.map(c => <span key={c} className="bg-blue-50 text-blue-800 px-5 py-2 rounded-full font-black text-[10px] uppercase border border-blue-100">{c}</span>)}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="mt-12 pt-8 border-t flex items-center justify-between">
+                                            <a href={`mailto:${viewExpertDetails.email}`} className="bg-red-700 text-white px-12 py-5 rounded-2xl font-black uppercase tracking-widest hover:bg-red-800 transition shadow-xl shadow-red-100 text-sm">Send Email</a>
+                                            <div className="flex gap-2">
+                                                {( (viewExpertDetails.endorsements && viewExpertDetails.endorsements.length > 0) || viewExpertDetails.primaryEndorserName ) && (
+                                                    <button onClick={() => setShowEndorsementList(viewExpertDetails)} className="inline-flex items-center gap-1 bg-green-50 text-green-700 px-4 py-2 rounded-full border border-green-200 text-xs font-bold uppercase hover:bg-green-100 transition">
+                                                        <ThumbsUp /> {(viewExpertDetails.endorsements ? viewExpertDetails.endorsements.length : 0) + (viewExpertDetails.primaryEndorserName ? 1 : 0)} Endorsements
+                                                    </button>
+                                                )}
+                                                <button onClick={() => setShowEndorseForm(viewExpertDetails)} className="bg-gray-100 hover:bg-green-100 text-gray-600 hover:text-green-800 px-4 py-2 rounded-full text-xs font-bold uppercase transition flex items-center gap-1"><ThumbsUp /> Endorse</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </ModalPortal>
+                    )}
+
+                    {/* ADD MODAL - PORTAL */}
+                    {showAddModal && (
+                        <ModalPortal>
+                            <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in overflow-y-auto">
+                                <div className="bg-white rounded-[2.5rem] w-full max-w-3xl shadow-2xl flex flex-col my-8 animate-slide-up max-h-[90vh]">
+                                    <div className="p-8 border-b flex justify-between items-center bg-gray-50 rounded-t-[2.5rem]">
+                                        <h2 className="text-3xl font-black text-gray-800 uppercase tracking-tight font-serif">{modalType === 'consultant' ? 'Share a Trusted Consultant' : 'Contribute to the Village'}</h2>
+                                        <button onClick={() => { setShowAddModal(false); setEditingExpert(null); }} className="text-gray-400 hover:text-gray-600"><X /></button>
+                                    </div>
+                                    <div className="p-10 overflow-y-auto space-y-8 max-h-[70vh]">
+                                        
+                                        {/* PRIMARY ENDORSER SECTION FOR CONSULTANTS */}
+                                        {modalType === 'consultant' && (
+                                            <div className="bg-purple-50 p-8 rounded-[2rem] border-2 border-purple-100 mb-6 relative overflow-hidden">
+                                                <div className="absolute top-0 left-0 w-full h-1 bg-purple-200"></div>
+                                                <h3 className="text-sm font-black text-purple-800 uppercase tracking-widest mb-6 flex items-center gap-2"><BadgeCheck /> Primary Endorser Information</h3>
+                                                <div className="grid md:grid-cols-2 gap-6">
+                                                    <div>
+                                                        <label className="text-[11px] font-black text-gray-400 uppercase mb-1 block">Your Name *</label>
+                                                        <input type="text" className="w-full p-4 bg-white border-2 border-purple-100 rounded-2xl outline-none focus:border-purple-500" value={newExpertise.primaryEndorserName} onChange={e => setNewExpertise({...newExpertise, primaryEndorserName: e.target.value})} />
+                                                    </div>
+                                                    <div>
+                                                        <label className="text-[11px] font-black text-gray-400 uppercase mb-1 block">Your Email *</label>
+                                                        <input type="email" className="w-full p-4 bg-white border-2 border-purple-100 rounded-2xl outline-none focus:border-purple-500" value={newExpertise.primaryEndorserEmail} onChange={e => setNewExpertise({...newExpertise, primaryEndorserEmail: e.target.value})} />
+                                                    </div>
+                                                    <div className="md:col-span-2">
+                                                        <label className="text-[11px] font-black text-gray-400 uppercase mb-1 block">Your Affiliate *</label>
+                                                        <select className="w-full p-4 bg-white border-2 border-purple-100 rounded-2xl outline-none focus:border-purple-500" value={newExpertise.primaryEndorserAffiliate} onChange={e => setNewExpertise({...newExpertise, primaryEndorserAffiliate: e.target.value})}>
+                                                            {AFFILIATES.map(a => <option key={a} value={a}>{a}</option>)}
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        <div className="grid md:grid-cols-2 gap-6">
+                                            <div><label className="text-[11px] font-black text-gray-400 uppercase mb-1 block">{modalType === 'consultant' ? "Consultant Name" : "Full Name"} *</label><input type="text" className="w-full p-4 bg-gray-50 border-2 border-gray-100 rounded-2xl outline-none focus:border-red-500" value={newExpertise.name} onChange={e => setNewExpertise({...newExpertise, name: e.target.value})} /></div>
+                                            <div><label className="text-[11px] font-black text-gray-400 uppercase mb-1 block">{modalType === 'consultant' ? "Consultant Email" : "Work Email"} *</label><input type="email" className="w-full p-4 bg-gray-50 border-2 border-gray-100 rounded-2xl outline-none focus:border-red-500" value={newExpertise.email} onChange={e => setNewExpertise({...newExpertise, email: e.target.value})} /></div>
+                                        </div>
+                                        <div className="grid md:grid-cols-2 gap-6">
+                                            <div><label className="text-[11px] font-black text-gray-400 uppercase mb-1 block">Job Title *</label><input type="text" className="w-full p-4 bg-gray-50 border-2 border-gray-100 rounded-2xl outline-none focus:border-red-500" value={newExpertise.title} onChange={e => setNewExpertise({...newExpertise, title: e.target.value})} /></div>
+                                            {modalType === 'consultant' ? <div><label className="text-[11px] font-black text-gray-400 uppercase mb-1 block">Consulting Firm Name</label><input type="text" className="w-full p-4 bg-gray-50 border-2 border-gray-100 rounded-2xl outline-none" value={newExpertise.company} onChange={e => setNewExpertise({...newExpertise, company: e.target.value})} /></div> : <div><label className="text-[11px] font-black text-gray-400 uppercase mb-1 block">VOA Affiliate</label><select className="w-full p-4 bg-gray-50 border-2 border-gray-100 rounded-2xl outline-none" value={newExpertise.affiliate} onChange={e => setNewExpertise({...newExpertise, affiliate: e.target.value})}>{AFFILIATES.map(a => <option key={a} value={a}>{a}</option>)}</select></div>}
+                                        </div>
+                                        
+                                        <div className="grid md:grid-cols-2 gap-6">
+                                            <div>
+                                                <label className="text-[11px] font-black text-gray-400 uppercase mb-1 block">Primary Domain (Select One) *</label>
+                                                <select className="w-full p-4 bg-gray-50 border-2 border-gray-100 rounded-2xl outline-none focus:border-red-500 font-bold" value={newExpertise.expertise} onChange={e => setNewExpertise({...newExpertise, expertise: e.target.value})}>
+                                                    <option value="">Select a Domain</option>
+                                                    {DOMAINS.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <label className="text-[11px] font-black text-gray-400 uppercase mb-1 block">State *</label>
+                                                <select className="w-full p-4 bg-gray-50 border-2 border-gray-100 rounded-2xl outline-none focus:border-red-500" value={newExpertise.state} onChange={e => setNewExpertise({...newExpertise, state: e.target.value})}>
+                                                    {US_STATES.map(st => <option key={st} value={st}>{st}</option>)}
+                                                </select>
+                                            </div>
+                                            {modalType === 'internal' && (
+                                                <div className="md:col-span-2">
+                                                    <label className="text-[11px] font-black text-gray-400 uppercase mb-1 block">Years of Experience</label>
+                                                    <input type="number" className="w-full p-4 bg-gray-50 border-2 border-gray-100 rounded-2xl outline-none focus:border-red-500" value={newExpertise.yearsExperience} onChange={e => setNewExpertise({...newExpertise, yearsExperience: e.target.value})} />
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        <div><label className="text-[11px] font-black text-gray-400 uppercase mb-3 block">Related Domains (Select All That Apply)</label><div className="grid grid-cols-2 md:grid-cols-3 gap-3 bg-gray-50 p-6 rounded-[2.5rem] border shadow-inner max-h-48 overflow-y-auto">{DOMAINS.map(cat => (<label key={cat} className="flex items-center gap-3 text-xs font-bold text-gray-600 cursor-pointer hover:text-red-600 transition"><input type="checkbox" checked={newExpertise.categories.includes(cat)} onChange={() => handleCategoryToggle(cat)} className="accent-red-600 h-5 w-5 rounded" />{cat}</label>))}</div></div>
+                                        <div><label className="text-[11px] font-black text-gray-400 uppercase mb-1 block">Detailed Bio / How You Can Help</label><textarea rows="4" className="w-full p-4 bg-gray-50 border-2 border-gray-100 rounded-2xl outline-none focus:border-red-500" value={newExpertise.description} onChange={e => setNewExpertise({...newExpertise, description: e.target.value})}></textarea></div>
+                                        <div className="grid grid-cols-2 gap-6">
+                                            <div><label className="text-[11px] font-black text-gray-400 uppercase mb-1 block">Response Time</label><select className="w-full p-4 bg-gray-50 border-2 border-gray-100 rounded-2xl outline-none" value={newExpertise.responseTime} onChange={e => setNewExpertise({...newExpertise, responseTime: e.target.value})}> <option value="Same Day">Same Day</option><option value="24-48 hours">24-48 hours</option><option value="3-5 days">3-5 days</option></select></div>
+                                            <div><label className="text-[11px] font-black text-gray-400 uppercase mb-1 block">Support Type</label><select className="w-full p-4 bg-gray-50 border-2 border-gray-100 rounded-2xl outline-none" value={newExpertise.availabilityType} onChange={e => setNewExpertise({...newExpertise, availabilityType: e.target.value})}><option value="brief">Brief Support (Q&A)</option><option value="detailed">Projects</option><option value="both">Both Brief Support and Projects</option></select></div>
+                                        </div>
+                                    </div>
+                                    <div className="p-10 bg-gray-50 rounded-b-[2.5rem] border-t flex gap-4">
+                                        <button onClick={handleSubmit} className="flex-1 bg-red-700 text-white py-5 rounded-3xl font-black uppercase tracking-widest hover:bg-red-800 shadow-xl shadow-red-100 transition-all active:scale-95">Publish Profile</button>
+                                        <button onClick={() => { setShowAddModal(false); setEditingExpert(null); }} className="px-12 py-5 bg-white border-2 rounded-3xl font-black text-gray-400 uppercase tracking-widest hover:bg-gray-100 transition">Cancel</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </ModalPortal>
+                    )}
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<ExpertisePlatform />);
+    </script>
+</body>
+</html>
