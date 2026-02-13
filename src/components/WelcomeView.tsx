@@ -6,9 +6,6 @@ interface WelcomeViewProps {
   onShareConsultant: () => void
 }
 
-// Embedded logo SVG - village/house theme
-const LOGO_SVG = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='48' fill='%23b91c1c' stroke='white' stroke-width='2'/%3E%3Cpath d='M15,60 L50,25 L85,60' fill='none' stroke='white' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/%3E%3Crect x='30' y='60' width='40' height='25' fill='white'/%3E%3Cpath d='M50,25 L50,15' stroke='white' stroke-width='3'/%3E%3C/svg%3E`
-
 // Icons
 const UserSearch = () => (
   <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -39,7 +36,7 @@ export default function WelcomeView({ onSeekWisdom, onContribute, onShareConsult
   return (
     <div className="welcome-view">
       <div className="welcome-content">
-        <img src={LOGO_SVG} className="welcome-logo" alt="VOA Expertise Village Logo" />
+        <img src="/logo.svg" className="welcome-logo" alt="VOA Expertise Village Logo" />
         <h1 className="welcome-title">VOA Expertise Village</h1>
         <p className="welcome-tagline">It takes a village, sharing our collective knowledge.</p>
         
