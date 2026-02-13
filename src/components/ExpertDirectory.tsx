@@ -22,6 +22,7 @@ interface ExpertDirectoryProps {
   onNominate: (expert: Expert) => void
   nominatedIds: string[]
   refreshKey?: number
+  userRole?: 'seeker' | 'expert' | 'nominator'
 }
 
 export interface ExpertWithMatch extends Expert {
@@ -29,7 +30,7 @@ export interface ExpertWithMatch extends Expert {
   matchType: 'best' | 'recommended' | null
 }
 
-export default function ExpertDirectory({ searchQuery, categoryKeywords, onClearSearch, onNominate, nominatedIds, refreshKey }: ExpertDirectoryProps) {
+export default function ExpertDirectory({ searchQuery, categoryKeywords, onClearSearch, onNominate, nominatedIds, refreshKey, userRole = 'seeker' }: ExpertDirectoryProps) {
   const [experts, setExperts] = useState<Expert[]>([])
   const [filteredExperts, setFilteredExperts] = useState<ExpertWithMatch[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -141,6 +142,7 @@ export default function ExpertDirectory({ searchQuery, categoryKeywords, onClear
               matchType={expert.matchType}
               onNominate={() => onNominate(expert)}
               isNominated={nominatedIds.includes(expert.id)}
+              userRole={userRole}
             />
           ))
         ) : (

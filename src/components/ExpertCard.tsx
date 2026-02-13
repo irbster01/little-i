@@ -16,9 +16,10 @@ interface ExpertCardProps {
   matchType?: 'best' | 'recommended' | null
   onNominate: () => void
   isNominated: boolean
+  userRole?: 'seeker' | 'expert' | 'nominator'
 }
 
-export default function ExpertCard({ expert, matchType, onNominate, isNominated }: ExpertCardProps) {
+export default function ExpertCard({ expert, matchType, onNominate, isNominated, userRole = 'seeker' }: ExpertCardProps) {
   return (
     <div className={`expert-card ${matchType ? `match-${matchType}` : ''}`}>
       {matchType && (
@@ -78,7 +79,7 @@ export default function ExpertCard({ expert, matchType, onNominate, isNominated 
       </div>
       <div className="expert-footer">
         <a href={`mailto:${expert.email}`} className="contact-button">
-          Contact
+          {userRole === 'seeker' ? 'Request Help' : 'Contact'}
         </a>
         <button 
           onClick={onNominate} 
@@ -88,12 +89,12 @@ export default function ExpertCard({ expert, matchType, onNominate, isNominated 
           {isNominated ? (
             <>
               <Check size={16} />
-              Nominated
+              {userRole === 'seeker' ? 'Saved' : 'Nominated'}
             </>
           ) : (
             <>
               <UserPlus size={16} />
-              Nominate
+              {userRole === 'seeker' ? 'Save Expert' : 'Nominate'}
             </>
           )}
         </button>

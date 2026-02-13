@@ -7,9 +7,10 @@ interface NominationsListProps {
   nominations: Expert[]
   onRemove: (expertId: string) => void
   onClear: () => void
+  userRole?: 'seeker' | 'expert' | 'nominator'
 }
 
-export default function NominationsList({ nominations, onRemove, onClear }: NominationsListProps) {
+export default function NominationsList({ nominations, onRemove, onClear, userRole = 'seeker' }: NominationsListProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitSuccess, setSubmitSuccess] = useState(false)
 
@@ -57,18 +58,20 @@ export default function NominationsList({ nominations, onRemove, onClear }: Nomi
       <div className="nominations-panel success">
         <div className="success-message">
           <CheckCircle size={24} />
-          <span>Nominations submitted successfully!</span>
+          <span>{userRole === 'seeker' ? 'Expert request submitted!' : 'Nominations submitted successfully!'}</span>
         </div>
       </div>
     )
   }
+
+  const panelTitle = userRole === 'seeker' ? 'My Expert Requests' : 'My Nominations'
 
   return (
     <div className="nominations-panel">
       <div className="nominations-header">
         <div className="nominations-title">
           <UserPlus size={20} />
-          <h3>My Nominations ({nominations.length})</h3>
+          <h3>{panelTitle} ({nominations.length})</h3>
         </div>
         <button onClick={onClear} className="clear-nominations">
           Clear All
@@ -108,7 +111,7 @@ export default function NominationsList({ nominations, onRemove, onClear }: Nomi
           ) : (
             <>
               <Send size={16} />
-              Submit Nominations
+              {userRole === 'seeker' ? 'Submit Request' : 'Submit Nominations'}
             </>
           )}
         </button>

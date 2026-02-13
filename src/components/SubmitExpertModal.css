@@ -14,7 +14,7 @@
 
 .modal-content {
   background: white;
-  border-radius: 8px;
+  border-radius: 1.5rem;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
   max-width: 700px;
   width: 100%;
@@ -46,6 +46,128 @@
   margin: 0;
   font-size: 1.5rem;
   color: #213547;
+}
+
+.modal-subtitle {
+  margin: 0.25rem 0 0;
+  font-size: 0.875rem;
+  color: #6b7280;
+  font-weight: 400;
+}
+
+.modal-header-contribute {
+  border-bottom-color: #dc2626;
+  background: linear-gradient(to right, #fef2f2, white);
+}
+
+.modal-header-contribute h2 {
+  color: #991b1b;
+}
+
+.modal-header-consultant {
+  border-bottom-color: #9333ea;
+  background: linear-gradient(to right, #faf5ff, white);
+}
+
+.modal-header-consultant h2 {
+  color: #6b21a8;
+}
+
+.modal-header-nominate {
+  border-bottom-color: #0078d4;
+}
+
+.form-section-label {
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #9ca3af;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.section-endorser {
+  margin-top: 1rem;
+  color: #7c3aed;
+  border-bottom-color: #ede9fe;
+}
+
+.form-section-desc {
+  font-size: 0.8125rem;
+  color: #6b7280;
+  margin: -0.5rem 0 1.25rem;
+  line-height: 1.5;
+}
+
+.availability-options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.availability-option {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.availability-option:hover {
+  border-color: #dc2626;
+  background: #fef2f2;
+}
+
+.availability-option.selected {
+  border-color: #dc2626;
+  background: #fef2f2;
+}
+
+.availability-option input[type="radio"] {
+  width: auto;
+  margin: 0;
+}
+
+.availability-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.availability-content strong {
+  font-size: 0.875rem;
+  color: #1f2937;
+}
+
+.availability-content span {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.skills-grid.compact {
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  max-height: 200px;
+}
+
+.button-contribute {
+  background: linear-gradient(to right, #dc2626, #991b1b) !important;
+}
+
+.button-contribute:hover {
+  background: linear-gradient(to right, #b91c1c, #7f1d1d) !important;
+}
+
+.button-consultant {
+  background: linear-gradient(to right, #9333ea, #6b21a8) !important;
+}
+
+.button-consultant:hover {
+  background: linear-gradient(to right, #7c3aed, #581c87) !important;
 }
 
 .close-button {
@@ -107,8 +229,8 @@
 .form-group select:focus,
 .form-group textarea:focus {
   outline: none;
-  border-color: #0078d4;
-  box-shadow: 0 0 0 3px rgba(0, 120, 212, 0.1);
+  border-color: #dc2626;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
 }
 
 .form-group small {

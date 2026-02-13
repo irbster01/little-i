@@ -4,9 +4,10 @@ import './SearchBar.css'
 interface SearchBarProps {
   onSearch: (query: string) => void
   onSubmitExpert: () => void
+  submitLabel?: string
 }
 
-export default function SearchBar({ onSearch, onSubmitExpert }: SearchBarProps) {
+export default function SearchBar({ onSearch, onSubmitExpert, submitLabel = '+ Nominate Expert' }: SearchBarProps) {
   const [query, setQuery] = useState('')
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -35,7 +36,7 @@ export default function SearchBar({ onSearch, onSubmitExpert }: SearchBarProps) 
           </button>
         </form>
         <button onClick={onSubmitExpert} className="submit-expert-button">
-          + Nominate Expert
+          {submitLabel}
         </button>
       </div>
     </div>
