@@ -1,10 +1,15 @@
+/* ===== Mobile-First Expert Card ===== */
 .expert-card {
   background: #fafafa;
-  border-radius: 8px;
-  padding: 1.5rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07), 0 1px 3px rgba(0, 0, 0, 0.06);
+  border-radius: 1rem;
+  padding: 1rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   transition: transform 0.2s, box-shadow 0.2s;
   position: relative;
+}
+
+.expert-card:active {
+  transform: scale(0.99);
 }
 
 .expert-card.match-best {
@@ -19,14 +24,14 @@
 
 .match-badge {
   position: absolute;
-  top: -10px;
-  right: 16px;
+  top: -8px;
+  right: 12px;
   display: flex;
   align-items: center;
   gap: 4px;
-  padding: 4px 10px;
+  padding: 3px 8px;
   border-radius: 12px;
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: 600;
   animation: badgePop 0.3s ease-out;
 }
@@ -42,40 +47,27 @@
 }
 
 @keyframes badgePop {
-  0% {
-    transform: scale(0.8);
-    opacity: 0;
-  }
-  50% {
-    transform: scale(1.1);
-  }
-  100% {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
-
-.expert-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15), 0 4px 8px rgba(0, 0, 0, 0.1);
+  0% { transform: scale(0.8); opacity: 0; }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); opacity: 1; }
 }
 
 .expert-header {
   display: flex;
-  gap: 1rem;
-  margin-bottom: 1rem;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
 }
 
 .expert-avatar {
-  width: 60px;
-  height: 60px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   background: linear-gradient(135deg, #0078d4 0%, #106ebe 100%);
   color: white;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.25rem;
+  font-size: 0.875rem;
   font-weight: 600;
   flex-shrink: 0;
 }
@@ -86,34 +78,40 @@
 }
 
 .expert-name {
-  font-size: 1.125rem;
+  font-size: 0.9375rem;
   font-weight: 600;
-  margin: 0 0 0.25rem 0;
+  margin: 0 0 0.125rem 0;
   color: #213547;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .expert-title {
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   color: #666;
   margin: 0 0 0.125rem 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .expert-department {
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   color: #888;
   margin: 0;
 }
 
 .expert-affiliate {
-  font-size: 0.813rem;
+  font-size: 0.75rem;
   color: #0078d4;
   margin: 0.25rem 0 0 0;
   font-weight: 500;
 }
 
 .expert-bio {
-  margin: 1rem 0;
-  padding: 0.75rem;
+  margin: 0.75rem 0;
+  padding: 0.625rem;
   background-color: #f8f9fa;
   border-radius: 6px;
   border-left: 3px solid #0078d4;
@@ -121,7 +119,7 @@
 
 .expert-bio p {
   margin: 0;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   color: #444;
   line-height: 1.5;
 }
@@ -129,41 +127,43 @@
 .expert-skills {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
-  min-height: 60px;
+  gap: 0.375rem;
+  margin-bottom: 0.75rem;
+  min-height: 0;
 }
 
 .skill-tag {
   display: inline-block;
-  padding: 0.25rem 0.75rem;
+  padding: 0.2rem 0.5rem;
   background-color: #e8f4fd;
   color: #0078d4;
   border-radius: 12px;
-  font-size: 0.813rem;
+  font-size: 0.75rem;
   font-weight: 500;
 }
 
 .expert-footer {
   border-top: 1px solid #f0f0f0;
-  padding-top: 1rem;
+  padding-top: 0.75rem;
   display: flex;
-  gap: 0.75rem;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
 .contact-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0.5rem 1.25rem;
+  padding: 0.625rem 1rem;
   background-color: #0078d4;
   color: white;
   text-decoration: none;
-  border-radius: 6px;
+  border-radius: 8px;
   font-weight: 500;
   font-size: 0.875rem;
   transition: all 0.2s;
   flex: 1;
+  min-height: 44px;
 }
 
 .contact-button:hover {
@@ -175,16 +175,17 @@
   align-items: center;
   justify-content: center;
   gap: 0.375rem;
-  padding: 0.5rem 1.25rem;
+  padding: 0.625rem 1rem;
   background-color: white;
   color: #2563eb;
   border: 2px solid #2563eb;
-  border-radius: 6px;
+  border-radius: 8px;
   font-weight: 500;
   font-size: 0.875rem;
   cursor: pointer;
   transition: all 0.2s;
   flex: 1;
+  min-height: 44px;
 }
 
 .nominate-button:hover:not(:disabled) {
@@ -207,20 +208,20 @@
 .expert-flair {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-bottom: 0.75rem;
+  gap: 0.375rem;
+  margin-bottom: 0.5rem;
 }
 
 .flair-badge {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 0.25rem 0.625rem;
+  gap: 3px;
+  padding: 0.2rem 0.5rem;
   background: rgba(var(--flair-color-rgb, 0, 120, 212), 0.1);
   color: var(--flair-color);
   border: 1px solid rgba(var(--flair-color-rgb, 0, 120, 212), 0.3);
   border-radius: 16px;
-  font-size: 0.7rem;
+  font-size: 0.625rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.3px;
@@ -260,21 +261,28 @@
   --flair-color-rgb: 37, 99, 235;
 }
 
-/* Mobile Responsive */
-@media (max-width: 768px) {
+/* ===== Tablet+ ===== */
+@media (min-width: 768px) {
   .expert-card {
     padding: 1.25rem;
+    border-radius: 8px;
+  }
+
+  .expert-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15), 0 4px 8px rgba(0, 0, 0, 0.1);
   }
 
   .match-badge {
-    top: -8px;
-    right: 12px;
-    padding: 3px 8px;
-    font-size: 0.7rem;
+    top: -10px;
+    right: 16px;
+    padding: 4px 10px;
+    font-size: 0.75rem;
   }
 
   .expert-header {
-    gap: 0.75rem;
+    gap: 1rem;
+    margin-bottom: 1rem;
   }
 
   .expert-avatar {
@@ -287,68 +295,69 @@
     font-size: 1rem;
   }
 
-  .expert-title,
-  .expert-department {
-    font-size: 0.813rem;
-  }
-
-  .expert-affiliate {
-    font-size: 0.75rem;
-  }
-
-  .expert-bio {
-    margin: 0.75rem 0;
-    padding: 0.625rem;
-  }
-
-  .expert-bio p {
-    font-size: 0.813rem;
+  .expert-footer {
+    flex-direction: row;
+    gap: 0.75rem;
   }
 
   .expert-skills {
-    min-height: 0;
-    gap: 0.375rem;
-    margin-bottom: 0.75rem;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
   }
 
   .skill-tag {
-    padding: 0.2rem 0.5rem;
-    font-size: 0.75rem;
-  }
-
-  .expert-flair {
-    gap: 0.375rem;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.813rem;
   }
 
   .flair-badge {
-    padding: 0.2rem 0.5rem;
-    font-size: 0.625rem;
+    padding: 0.25rem 0.625rem;
+    font-size: 0.7rem;
+    gap: 4px;
   }
 
-  .expert-footer {
-    flex-direction: column;
+  .expert-flair {
     gap: 0.5rem;
+    margin-bottom: 0.75rem;
+  }
+}
+
+/* ===== Desktop ===== */
+@media (min-width: 1024px) {
+  .expert-card {
+    padding: 1.5rem;
+  }
+
+  .expert-avatar {
+    width: 60px;
+    height: 60px;
+    font-size: 1.25rem;
+  }
+
+  .expert-name {
+    font-size: 1.125rem;
+  }
+
+  .expert-title,
+  .expert-department {
+    font-size: 0.875rem;
+  }
+
+  .expert-bio {
+    margin: 1rem 0;
+    padding: 0.75rem;
+  }
+
+  .expert-bio p {
+    font-size: 0.875rem;
+  }
+
+  .expert-skills {
+    min-height: 60px;
   }
 
   .contact-button,
   .nominate-button {
-    padding: 0.625rem 1rem;
-    font-size: 0.813rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .expert-card {
-    padding: 1rem;
-  }
-
-  .expert-avatar {
-    width: 44px;
-    height: 44px;
-    font-size: 0.875rem;
-  }
-
-  .expert-name {
-    font-size: 0.9375rem;
+    padding: 0.5rem 1.25rem;
   }
 }

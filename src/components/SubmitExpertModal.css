@@ -1,3 +1,4 @@
+/* ===== Mobile-First Modal ===== */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -6,21 +7,22 @@
   bottom: 0;
   background-color: rgba(0, 0, 0, 0.5);
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   z-index: 1000;
-  padding: 1rem;
+  padding: 0;
+  padding-top: 1rem;
 }
 
 .modal-content {
   background: white;
-  border-radius: 1.5rem;
+  border-radius: 1rem 1rem 0 0;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-  max-width: 700px;
   width: 100%;
-  max-height: 90vh;
+  max-height: 96vh;
   overflow-y: auto;
   overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
   animation: modalSlideIn 0.2s ease-out;
 }
 
@@ -33,7 +35,7 @@
 @keyframes modalSlideIn {
   from {
     opacity: 0;
-    transform: translateY(-20px);
+    transform: translateY(20px);
   }
   to {
     opacity: 1;
@@ -45,21 +47,21 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  padding: 1.5rem 2rem;
+  padding: 1rem 1.25rem;
   border-bottom: 1px solid #e0e0e0;
-  border-radius: 1.5rem 1.5rem 0 0;
+  border-radius: 1rem 1rem 0 0;
 }
 
 .modal-header h2 {
   margin: 0;
-  font-size: 1.5rem;
+  font-size: 1.125rem;
   color: #213547;
   line-height: 1.3;
 }
 
 .modal-subtitle {
   margin: 0.25rem 0 0;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   color: #6b7280;
   font-weight: 400;
   line-height: 1.4;
@@ -122,11 +124,12 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 0.75rem 1rem;
+  padding: 0.625rem 0.75rem;
   border: 2px solid #e5e7eb;
   border-radius: 0.75rem;
   cursor: pointer;
   transition: all 0.2s;
+  min-height: 44px;
 }
 
 .availability-option:hover {
@@ -188,17 +191,16 @@
   color: #666;
   cursor: pointer;
   padding: 0;
-  width: 32px;
-  height: 32px;
-  min-width: 32px;
-  min-height: 32px;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 4px;
   transition: background-color 0.2s, color 0.2s;
   flex-shrink: 0;
-  margin-top: 2px;
 }
 
 .close-button:hover {
@@ -207,17 +209,17 @@
 }
 
 .expert-form {
-  padding: 2rem;
+  padding: 1rem 1.25rem;
 }
 
 .form-group {
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.25rem;
 }
 
 .form-row {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
+  grid-template-columns: 1fr;
+  gap: 0;
   align-items: start;
 }
 
@@ -235,7 +237,7 @@
   padding: 0.75rem;
   border: 1px solid #d1d1d1;
   border-radius: 0.5rem;
-  font-size: 1rem;
+  font-size: 16px; /* prevents iOS zoom */
   font-family: inherit;
   transition: border-color 0.2s;
   box-sizing: border-box;
@@ -266,7 +268,7 @@
 .form-group small {
   display: block;
   margin-top: 0.25rem;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   color: #666;
 }
 
@@ -281,6 +283,7 @@
   gap: 0.5rem;
   max-height: 300px;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   padding: 0.75rem;
   border: 1px solid #e0e0e0;
   border-radius: 0.75rem;
@@ -318,7 +321,7 @@
   background-color: white;
   border: 1px solid #d1d1d1;
   border-radius: 12px;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   transition: all 0.2s;
   line-height: 1.3;
   white-space: nowrap;
@@ -363,7 +366,7 @@
   background-color: #e8f4fd;
   color: #0078d4;
   border-radius: 12px;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   font-weight: 500;
 }
 
@@ -375,8 +378,8 @@
   line-height: 1;
   cursor: pointer;
   padding: 0;
-  width: 18px;
-  height: 18px;
+  width: 24px;
+  height: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -390,11 +393,10 @@
 
 .form-actions {
   display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  gap: 1rem;
-  margin-top: 2rem;
-  padding-top: 1.5rem;
+  flex-direction: column-reverse;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
   border-top: 1px solid #e0e0e0;
 }
 
@@ -408,15 +410,31 @@
   transition: all 0.2s;
   border: none;
   white-space: nowrap;
+  min-height: 44px;
+  text-align: center;
+  justify-content: center;
+  width: 100%;
 }
 
 .button-primary {
   background-color: #0078d4;
   color: white;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .button-primary:hover {
   background-color: #106ebe;
+}
+
+.button-primary:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.button-primary .spinning {
+  animation: spin 1s linear infinite;
 }
 
 .button-secondary {
@@ -430,76 +448,9 @@
   border-color: #999;
 }
 
-@media (max-width: 768px) {
-  .modal-overlay {
-    padding: 0.5rem;
-    align-items: flex-start;
-    padding-top: 2rem;
-  }
-
-  .modal-content {
-    max-height: 92vh;
-    border-radius: 1rem;
-  }
-
-  .modal-header {
-    padding: 1.25rem 1.5rem;
-    border-radius: 1rem 1rem 0 0;
-  }
-
-  .modal-header h2 {
-    font-size: 1.25rem;
-  }
-
-  .form-row {
-    grid-template-columns: 1fr;
-    gap: 0;
-  }
-
-  .expert-form {
-    padding: 1.25rem 1.5rem;
-  }
-
-  .form-actions {
-    flex-direction: column-reverse;
-  }
-
-  .form-actions .button-primary,
-  .form-actions .button-secondary {
-    width: 100%;
-    text-align: center;
-    justify-content: center;
-  }
-
-  .availability-option {
-    padding: 0.625rem 0.75rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .modal-overlay {
-    padding: 0;
-    padding-top: 1rem;
-  }
-
-  .modal-content {
-    max-height: 96vh;
-    border-radius: 1rem 1rem 0 0;
-  }
-
-  .modal-header {
-    padding: 1rem 1.25rem;
-    border-radius: 1rem 1rem 0 0;
-  }
-
-  .expert-form {
-    padding: 1rem 1.25rem;
-  }
-
-  .status-message {
-    padding: 0.75rem 1.25rem;
-    font-size: 0.875rem;
-  }
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 /* Status messages */
@@ -507,9 +458,9 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 1rem 2rem;
+  padding: 0.75rem 1.25rem;
   font-weight: 500;
-  font-size: 0.9375rem;
+  font-size: 0.875rem;
   line-height: 1.4;
 }
 
@@ -529,23 +480,90 @@
   border-bottom: 1px solid #fecaca;
 }
 
-/* Button loading state */
-.button-primary:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
+/* ===== Tablet+ ===== */
+@media (min-width: 768px) {
+  .modal-overlay {
+    padding: 1rem;
+    align-items: center;
+    padding-top: 1rem;
+  }
+
+  .modal-content {
+    max-width: 700px;
+    max-height: 90vh;
+    border-radius: 1.5rem;
+  }
+
+  .modal-header {
+    padding: 1.5rem 2rem;
+    border-radius: 1.5rem 1.5rem 0 0;
+  }
+
+  .modal-header h2 {
+    font-size: 1.5rem;
+  }
+
+  .modal-subtitle {
+    font-size: 0.875rem;
+  }
+
+  .expert-form {
+    padding: 2rem;
+  }
+
+  .form-group {
+    margin-bottom: 1.5rem;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+
+  .form-actions {
+    flex-direction: row;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+  }
+
+  .button-primary,
+  .button-secondary {
+    width: auto;
+  }
+
+  .availability-option {
+    padding: 0.75rem 1rem;
+  }
+
+  .skill-badge {
+    font-size: 0.875rem;
+  }
+
+  .selected-badge {
+    font-size: 0.875rem;
+  }
+
+  .status-message {
+    padding: 1rem 2rem;
+    font-size: 0.9375rem;
+  }
+
+  .close-button {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    min-height: 32px;
+    margin-top: 2px;
+  }
 }
 
-.button-primary .spinning {
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
-.button-primary {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
+/* ===== Desktop ===== */
+@media (min-width: 1024px) {
+  .form-group input:not([type="checkbox"]):not([type="radio"]),
+  .form-group select,
+  .form-group textarea {
+    font-size: 1rem;
+  }
 }

@@ -9,10 +9,10 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'apple-touch-icon.png'],
       manifest: {
-        name: 'Expertise Marketplace - VOA',
-        short_name: 'Expertise',
+        name: 'VOA Expertise Village',
+        short_name: 'Expertise Village',
         description: 'Find and connect with subject matter experts across Volunteers of America',
-        theme_color: '#0078d4',
+        theme_color: '#991b1b',
         background_color: '#f5f5f5',
         display: 'standalone',
         orientation: 'portrait-primary',

@@ -1,3 +1,4 @@
+/* ===== Mobile-First Base (default = small screens) ===== */
 * {
   margin: 0;
   padding: 0;
@@ -6,36 +7,35 @@
 
 .app {
   min-height: 100vh;
+  min-height: 100dvh;
   background-color: #f8f5f2;
 }
 
 .main-content {
-  padding: 2rem 0;
+  padding: 0.75rem 0;
+  padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
 }
 
 .container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 1.5rem;
+  padding: 0 0.75rem;
 }
 
-/* Mobile Responsive */
-@media (max-width: 768px) {
+/* ===== Tablet+ ===== */
+@media (min-width: 768px) {
   .main-content {
-    padding: 1rem 0;
+    padding: 1.5rem 0;
   }
 
   .container {
-    padding: 0 1rem;
+    padding: 0 1.5rem;
   }
 }
 
-@media (max-width: 480px) {
+/* ===== Desktop ===== */
+@media (min-width: 1024px) {
   .main-content {
-    padding: 0.75rem 0;
-  }
-
-  .container {
-    padding: 0 0.75rem;
+    padding: 2rem 0;
   }
 }
