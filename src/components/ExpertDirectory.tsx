@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react'
 import ExpertCard from './ExpertCard'
+import ExpertDetailModal from './ExpertDetailModal'
 import { Loader2 } from 'lucide-react'
 import './ExpertDirectory.css'
 
@@ -13,6 +14,11 @@ export interface Expert {
   email: string
   bio: string
   flair?: string[]
+  endorsements?: Record<string, number>
+  requestCount?: number
+  highlights?: string[]
+  availability?: string
+  responseTime?: string
 }
 
 interface ExpertDirectoryProps {
@@ -34,6 +40,7 @@ export default function ExpertDirectory({ searchQuery, categoryKeywords, onClear
   const [experts, setExperts] = useState<Expert[]>([])
   const [filteredExperts, setFilteredExperts] = useState<ExpertWithMatch[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [selectedExpert, setSelectedExpert] = useState<Expert | null>(null)
 
   const fetchExperts = useCallback(async () => {
     setIsLoading(true)
@@ -143,6 +150,7 @@ export default function ExpertDirectory({ searchQuery, categoryKeywords, onClear
               onNominate={() => onNominate(expert)}
               isNominated={nominatedIds.includes(expert.id)}
               userRole={userRole}
+              onViewProfile={() => setSelectedExpert(expert)}
             />
           ))
         ) : (
@@ -154,6 +162,11 @@ export default function ExpertDirectory({ searchQuery, categoryKeywords, onClear
           </div>
         )}
       </div>
+      <ExpertDetailModal
+        expert={selectedExpert}
+        isOpen={selectedExpert !== null}
+        onClose={() => setSelectedExpert(null)}
+      />
     </div>
   )
 }

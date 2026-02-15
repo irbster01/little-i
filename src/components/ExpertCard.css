@@ -164,6 +164,8 @@
   transition: all 0.2s;
   flex: 1;
   min-height: 44px;
+  border: none;
+  cursor: pointer;
 }
 
 .contact-button:hover {
